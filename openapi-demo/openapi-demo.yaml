@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Postman Echo
+  title: PERKS Demo OpenAPI
   description: >-
     Postman Echo is service you can use to test your REST clients and make
     sample API calls. It provides endpoints for `GET`, `POST`, `PUT`, various

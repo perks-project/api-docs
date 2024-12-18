@@ -1,0 +1,325 @@
+openapi: 3.0.3
+info:
+  title: PERKS Solution 6B - FAQ Generator Documentation
+  description: |-
+    This documentation describes a conceptual plan for how Solution 6B is expected interact with Solution 6A API endpoints to retrieve conversation logs and post a batch of generated question-answer/question-context-answer datasets. It also illustrates the expected format of the JSON schema of the dataset being posted.
+    
+    For the first release documentation, we use an example URL for solution 6A endpoints [https://perks-project/example-solution-6A-api/v1](https://github.com/perks-project/api-docs). In future releases when deployment and on-premise installation have been specified, the documentation will be updated accordingly.
+
+    Useful links to PERKS Project:
+    - [The PERKS Project Git Repository](https://github.com/perks-project)
+    - [API Documentation](https://github.com/perks-project/api-docs)
+
+  contact:
+    email: noon.pokaratsiri@dfki.de
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+
+servers:
+  - url: https://perks-project/example-solution-6A-api/v1
+tags:
+  - name: datasets
+    description: Access to Solution 6B generated QA or QCA Datasets
+    externalDocs:
+      description: Find out more
+      url: https://github.com/perks-project/api-docs/tree/main/solution-6b
+  - name: logs
+    description: Access to Solution 6A Conversation logs
+    externalDocs:
+      description: Find out more about Solution 6A
+      url: https://github.com/perks-project/api-docs/tree/main/solution-6a
+
+paths:
+  /datasets/{datasetId}/uploadFile:
+    post:
+      tags:
+        - datasets
+      summary: Upload a batch of QA/QCA datasets as a zip file
+      description: ''
+      operationId: uploadFile
+      parameters:
+        - name: datasetId
+          in: path
+          description: ID for the dataset batch
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: additionalMetadata
+          in: query
+          description: Additional Metadata
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      security:
+        - api_key: []
+        - solution6a_auth:
+            - write:datasets
+            - read:datasets
+  /datasets/addSingleDataset:
+    post:
+      tags:
+        - datasets
+      summary: Send a single QA/QCA dataset to Solution 6A
+      description: Send a single QA/QCA dataset to Solution 6A
+      operationId: sendDataset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Dataset'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      security:
+        - api_key: []
+        - solution6a_auth:
+            - write:datasets
+            - read:datasets
+  /logs/find/{dateId}:
+    get:
+      tags:
+        - logs
+      summary: Get a conversational log file by date from Solution 6A
+      description: For valid response try date as interger format e.g. a log file from Dec 10, 2024 has a date id of 121024 Other values will generate exceptions.
+      operationId: getLogByDateId
+      parameters:
+        - name: dateId
+          in: path
+          description: dateId of log file to be retrieved
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Log'          
+        '400':
+          description: Invalid dateId supplied
+        '404':
+          description: Log not found
+      security:
+        - api_key: []
+        - solution6a_auth:
+            - read:logs
+
+components:
+  schemas:
+    Log:
+      required:
+        - dateId
+        - useCase
+        - logContent
+      type: object
+      properties:
+        dateId:
+          type: integer
+          format: int64
+          example: 12102024
+        logId:
+          type: integer
+          format: int64
+          example: 1
+        useCase:
+          type: string
+          description: Use case
+          example: Fagor
+          enum:
+            - Beko
+            - Fagor
+            - Siemens
+        logDate:
+          type: string
+          format: date-time
+        logContent:
+          type: array
+          xml: 
+            name: contents
+            wrapped: true
+          items:
+            $ref: '#/components/schemas/Content'
+        answerable:
+            type: boolean
+      xml:
+        name: log
+    Content:
+      required:
+        - intentId
+        - logText
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+        room:
+          type: integer
+          format: int64
+          example: 3
+        intentId:
+          type: integer
+          format: int64
+          example: 69689
+        messageType:
+          type: string
+          description: Message Type
+          example: Text
+          enum:
+            - text
+            - postback
+            - quickReply
+        logText:
+          type: string
+          example: The question could not be answered with the knowledge provided
+      xml:
+        name: content
+    Context:
+      type: object
+      properties:
+        sentenceId:
+          type: integer
+          format: int64
+          example: 1
+        text:
+          type: string
+          description: A sentence/chunk of texts making up the query_contexts the query is generated from
+          example: There are registers from R1 up to R20, which must be defined as non volatile data.
+      xml:
+        name: context
+    QCA:
+      type: object
+      properties:
+        queryId:
+          type: integer
+          format: int64
+          example: 1
+        query:
+          type: string
+          description: The question generated by the model from the reference_contexts
+          example: What is the purpose of non-volatile data and why are they important for the PLC Wizard?
+        reference_contexts:
+          type: array
+          description: The list of sentences/chunks of texts the query is generated from
+          xml: 
+            name: contexts
+            wrapped: true
+          items:
+            $ref: '#/components/schemas/Context'
+        reference_answer:
+          type: string
+          description: Corresponding answer to the query based on the reference_contexts
+          example: Non-volatile data is important for the PLC Wizard as it helps to retain the information even after the power is turned off or there is a system failure. These data are crucial for maintaining the system's consistency and ensuring that important information is not lost. (...)
+        reference_answer_by:
+          type: string
+          description: The model that generates the reference_answer and its filepath in case of LLM
+          example: ai (./mistral-7b-openorca.Q4_K_M.gguf)
+        query_by:
+          type: string
+          description: The model that generates the query and its file path in case of LLM
+          example: ai (./mistral-7b-openorca.Q4_K_M.gguf)
+      xml:
+        name: qca
+    Dataset:
+      required:
+        - datasetId
+        - useCase
+        - generationMethod
+        - qca
+      type: object
+      properties:
+        datasetId:
+          type: integer
+          format: int64
+          example: 1
+        useCase:
+          type: string
+          description: Name of use case
+          example: Fagor
+          enum:
+            - Fagor
+            - Beko
+            - Siemens
+        generationMethod:
+          type: string
+          description: How dataset was generated
+          example: rag
+          enum:
+            - template
+            - seq2seq
+            - rag
+        qca:
+          type: array
+          xml: 
+            name: qcas
+            wrapped: true
+          items:
+            $ref: '#/components/schemas/QCA'
+        docPaths:
+          type: array
+          xml:
+            wrapped: true
+          items:
+            type: string
+            xml:
+              name: docPath
+        hasContext:
+            type: boolean
+      xml:
+        name: dataset
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: '##default'
+  requestBodies:
+    Dataset:
+      description: Dataset object to be sent to Solution 6A
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Dataset'
+  securitySchemes:
+    solution6a_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://perks-project/example-solution-6A-api/v1/oauth/authorize
+          scopes:
+            write:datasets: send datasets
+            read:datasets: read datasets
+            read:logs: get conversation logs
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

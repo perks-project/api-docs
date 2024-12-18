@@ -1,10 +1,24 @@
 openapi: 3.0.3
 info:
   title: PERKS Solution 6B - FAQ Generator Documentation
-  description: |-
+  description: |
     This documentation describes a conceptual plan for how Solution 6B is expected interact with Solution 6A API endpoints to retrieve conversation logs and post a batch of generated question-answer/question-context-answer datasets. It also illustrates the expected format of the JSON schema of the dataset being posted.
     
-    For the first release documentation, we use an example URL for solution 6A endpoints [https://perks-project/example-solution-6A-api/v1](https://github.com/perks-project/api-docs). In future releases when deployment and on-premise installation have been specified, the documentation will be updated accordingly.
+    For the first release documentation, we use a fictitious example URL for solution 6A endpoints [https://perks-project/example-solution-6A-api/v1](https://github.com/perks-project/api-docs). In future releases when deployment and on-premise installation have been specified, the documentation will be updated accordingly.
+    
+    Installation requirements
+    - 
+    Hardware:
+    - CPU: high-end CPU with multiple cores.
+    - RAM: 128 GB of RAM (at least 64 GB of RAM).
+    - Storage: high-speed SSDs to facilitate quick data access and model loading times.
+    
+    If GPU available:
+    - A GPU with at least 24 GB of VRAM (NVIDIA RTX 3090 GPU) for future releases.
+    
+    Software:
+    - Containerization : Docker
+    - GPU Libraries: CUDA, cuDNN (if GPU is available) (future releases)
 
     Useful links to PERKS Project:
     - [The PERKS Project Git Repository](https://github.com/perks-project)

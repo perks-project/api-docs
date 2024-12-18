@@ -1,0 +1,406 @@
+openapi: 3.0.1
+info:
+  title: Beko
+  version: "1.0.0"
+paths:
+  /v1/authenticate:
+    post:
+      tags:
+        - authentication
+      summary: Authenticate user and return a JWT token
+      requestBody:
+        description: The username and password for authentication
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Your JWT token here"
+  /v1/Beko/ProcedureExtractionService:
+    post:
+      tags:
+        - dynamic
+      requestBody:
+        description: The payload that the operation expects
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                procedure_extraction:
+                  type: object
+                  properties:
+                    fine_tuned_lm:
+                      type: object
+                      properties:
+                        lm_uuid:
+                          type: string
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    procedure_document:
+                      type: object
+                      properties:
+                        document_id:
+                          type: string
+                        hash:
+                          type: string
+                    start_timestamp:
+                      type: string
+                      format: date-time
+                    output_id:
+                      type: string
+                    procedure_extraction_issue:
+                      type: object
+                      properties:
+                        error_id:
+                          type: array
+                          items:
+                            type: string
+                        label:
+                          type: string
+                        suggested_solution:
+                          type: string
+                    rules:
+                      type: object
+                      properties:
+                        formalism:
+                          type: string
+                        description:
+                          type: string
+                        contact_information:
+                          type: string
+                        input_conditions:
+                          type: string
+                        version:
+                          type: string
+                        license:
+                          type: string
+                        git_commit:
+                          type: string
+                        risks:
+                          type: string
+                        scope:
+                          type: string
+                        biases:
+                          type: string
+                        deployment_information:
+                          type: string
+                        ruleset_name:
+                          type: string
+                        validation_metrics:
+                          type: string
+                    input_id:
+                      type: string
+                    status:
+                      type: boolean
+                    extracted_procedure_results:
+                      type: object
+                      properties:
+                        hash:
+                          type: string
+                uuid:
+                  type: string
+      responses:
+        "201":
+          description: Created
+      security:
+        - JWTBearer: []
+  /v1/Beko/FineTuneLMService:
+    post:
+      tags:
+        - dynamic
+      requestBody:
+        description: The payload that the operation expects
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fine_tune_lm:
+                  type: object
+                  properties:
+                    fine_tuned_lm:
+                      type: object
+                      properties:
+                        feature_information:
+                          type: string
+                        training_dataset_split:
+                          type: string
+                        evaluation_metrics:
+                          type: string
+                        model_type:
+                          type: string
+                        contact_information:
+                          type: string
+                        evaluation_results:
+                          type: string
+                        lm_uuid:
+                          type: string
+                        monitoring:
+                          type: string
+                        version:
+                          type: string
+                        training_dataset:
+                          type: string
+                        license:
+                          type: string
+                        intended_use:
+                          type: string
+                        risks:
+                          type: string
+                        model_name:
+                          type: string
+                        model_url:
+                          type: string
+                        biases:
+                          type: string
+                        deployment_information:
+                          type: string
+                        model_parameters:
+                          type: string
+                        training_information:
+                          type: string
+                    model_version:
+                      type: string
+                    lm:
+                      type: object
+                      properties:
+                        feature_information:
+                          type: string
+                        training_dataset_split:
+                          type: string
+                        evaluation_metrics:
+                          type: string
+                        model_type:
+                          type: string
+                        contact_information:
+                          type: string
+                        evaluation_results:
+                          type: string
+                        lm_uuid:
+                          type: string
+                        monitoring:
+                          type: string
+                        version:
+                          type: string
+                        training_dataset:
+                          type: string
+                        license:
+                          type: string
+                        intended_use:
+                          type: string
+                        risks:
+                          type: string
+                        model_name:
+                          type: string
+                        model_url:
+                          type: string
+                        biases:
+                          type: string
+                        deployment_information:
+                          type: string
+                        model_parameters:
+                          type: string
+                        training_information:
+                          type: string
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    start_timestamp:
+                      type: string
+                      format: date-time
+                    output_id:
+                      type: string
+                    input_id:
+                      type: string
+                    status:
+                      type: boolean
+                uuid:
+                  type: string
+      responses:
+        "201":
+          description: Created
+      security:
+        - JWTBearer: []
+  /v1/Beko/ProcedureManualExtractionService:
+    post:
+      tags:
+        - dynamic
+      requestBody:
+        description: The payload that the operation expects
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                procedure_manual_extraction:
+                  type: object
+                  properties:
+                    manual_procedure_results:
+                      type: object
+                      properties:
+                        hash:
+                          type: string
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    start_timestamp:
+                      type: string
+                      format: date-time
+                    output_id:
+                      type: string
+                    manual_extraction_issue:
+                      type: object
+                      properties:
+                        error_id:
+                          type: array
+                          items:
+                            type: string
+                        label:
+                          type: string
+                        suggested_solution:
+                          type: string
+                    input_id:
+                      type: string
+                    status:
+                      type: boolean
+                    extracted_procedure_results:
+                      type: object
+                      properties:
+                        hash:
+                          type: string
+                uuid:
+                  type: string
+      responses:
+        "201":
+          description: Created
+      security:
+        - JWTBearer: []
+  /v1/Beko/ProcedureApprovalService:
+    post:
+      tags:
+        - dynamic
+      requestBody:
+        description: The payload that the operation expects
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                procedure_approval:
+                  type: object
+                  properties:
+                    validated_procedure_results:
+                      type: object
+                      properties:
+                        hash:
+                          type: string
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    start_timestamp:
+                      type: string
+                      format: date-time
+                    output_id:
+                      type: string
+                    approved_procedure:
+                      type: object
+                      properties:
+                        hash:
+                          type: string
+                    procedure_approval_issue:
+                      type: object
+                      properties:
+                        error_id:
+                          type: array
+                          items:
+                            type: string
+                        label:
+                          type: string
+                        suggested_solution:
+                          type: string
+                    input_id:
+                      type: string
+                    status:
+                      type: boolean
+                uuid:
+                  type: string
+      responses:
+        "201":
+          description: Created
+      security:
+        - JWTBearer: []
+  /v1/Beko/ProcedureValidationService:
+    post:
+      tags:
+        - dynamic
+      requestBody:
+        description: The payload that the operation expects
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                procedure_validation:
+                  type: object
+                  properties:
+                    procedure_validation_issue:
+                      type: object
+                      properties:
+                        error_id:
+                          type: array
+                          items:
+                            type: string
+                        label:
+                          type: string
+                        suggested_solution:
+                          type: string
+                    validated_procedure_results:
+                      type: object
+                      properties:
+                        hash:
+                          type: string
+                    manual_procedure_results:
+                      type: object
+                      properties:
+                        hash:
+                          type: string
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    start_timestamp:
+                      type: string
+                      format: date-time
+                    output_id:
+                      type: string
+                    input_id:
+                      type: string
+                    status:
+                      type: boolean
+                uuid:
+                  type: string
+      responses:
+        "201":
+          description: Created
+      security:
+        - JWTBearer: []
+components:
+  securitySchemes:
+    JWTBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - JWTBearer: []

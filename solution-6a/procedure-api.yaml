@@ -1,0 +1,360 @@
+openapi: 3.0.0
+info:
+  title: Procedure API
+  description: API for handling procedure add/update and delete operations.
+  version: 1.0.0
+
+servers:
+  - url: https://proxy.onlim.com/api/its/api/executioner/public/actions
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+    organizationId:
+      type: apiKey
+      in: header
+      name: x-organization-id
+  schemas:
+    ProcedureData:
+      type: object
+      properties:
+        data:
+          type: array
+          description: "An array containing procedure instances in JSON-LD format."
+          items:
+            type: object
+            description: "A single procedure instance in JSON-LD format."
+      required:
+        - data
+
+    ImportProcess:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Unique identifier for the import process."
+        customer:
+          type: string
+          format: uuid
+          description: "UUID of the customer."
+        dataSource:
+          type: string
+          format: uuid
+          description: "UUID of the data source."
+        importStartTime:
+          type: string
+          format: date-time
+          description: "Timestamp when the import started."
+        processingDurationMs:
+          type: integer
+          description: "Processing duration in milliseconds."
+        verified:
+          type: boolean
+          description: "Indicates whether the import is verified."
+        valid:
+          type: boolean
+          description: "Indicates whether the import is valid."
+        stored:
+          type: boolean
+          description: "Indicates whether the import data is stored."
+        running:
+          type: boolean
+          description: "Indicates whether the import process is still running."
+        existingObjects:
+          type: boolean
+          description: "Indicates whether existing objects were found during the import."
+        importSize:
+          type: integer
+          description: "Size of the import in bytes."
+        operation:
+          type: string
+          enum: [UPSERT]
+          description: "Type of operation performed during the import."
+        numberOfStatements:
+          type: integer
+          description: "Number of statements processed during the import."
+        qatResponse:
+          type: object
+          properties:
+            score:
+              type: number
+              description: "Overall score of the quality assurance test."
+            details:
+              type: object
+              description: "Detailed scores for quality assurance metrics."
+              additionalProperties:
+                type: string
+            entityScores:
+              type: array
+              description: "Scores for individual entities."
+              items:
+                type: object
+                properties:
+                  nodeId:
+                    type: string
+                    description: "Node identifier for the entity."
+                  score:
+                    type: number
+                    description: "Quality score for the entity."
+                  details:
+                    type: object
+                    description: "Detailed scores for quality assurance metrics for the entity."
+                    additionalProperties:
+                      type: string
+                required:
+                  - nodeId
+                  - score
+        verificationReport:
+          type: object
+          properties:
+            isValid:
+              type: boolean
+              description: "Indicates whether the verification was successful."
+            statusCode:
+              type: integer
+              description: "HTTP status code of the verification process."
+            reports:
+              type: array
+              description: "Individual verification reports for entities."
+              items:
+                type: object
+                properties:
+                  nodeId:
+                    type: string
+                    description: "Node identifier of the entity."
+                  usedDs:
+                    type: string
+                    format: uri
+                    description: "Domain specification used for verification."
+                  verificationReport:
+                    type: object
+                    properties:
+                      verificationResult:
+                        type: string
+                        description: "Result of the verification."
+                      errors:
+                        type: array
+                        description: "List of errors during verification."
+                        items:
+                          type: string
+                required:
+                  - nodeId
+                  - usedDs
+                  - verificationReport
+        meta:
+          type: object
+          properties:
+            numEntities:
+              type: integer
+            numVerifiedEntities:
+              type: integer
+            numNonVerifiedEntities:
+              type: integer
+            numValidEntities:
+              type: integer
+            numValidWithWarningEntities:
+              type: integer
+            numInvalidEntities:
+              type: integer
+            numTotalErrors:
+              type: integer
+            errorDistribution:
+              type: object
+              additionalProperties:
+                type: integer
+        affectedEntities:
+          type: array
+          description: "List of affected entities during the import."
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: "Entity identifier."
+              dsUri:
+                type: string
+                format: uri
+                description: "Domain specification URI for the entity."
+            required:
+              - id
+              - dsUri
+        affectedGraph:
+          type: string
+          description: "Identifier for the affected graph."
+      required:
+        - id
+        - customer
+        - dataSource
+        - importStartTime
+        - processingDurationMs
+        - verified
+        - valid
+        - stored
+        - running
+        - existingObjects
+        - importSize
+        - operation
+        - numberOfStatements
+        - qatResponse
+        - verificationReport
+        - affectedEntities
+        - affectedGraph
+
+    DeleteProcedureInput:
+      type: object
+      properties:
+        options:
+          type: object
+          description: "Options for the delete operation."
+          properties:
+            force:
+              type: boolean
+              description: "Indicates whether to forcefully delete the procedure."
+            testRun:
+              type: boolean
+              description: "Indicates whether this is a test run for the deletion."
+          required:
+            - force
+            - testRun
+        uri:
+          type: string
+          description: "URI of the instance to be deleted."
+          format: uri
+      required:
+        - options
+        - uri
+
+    DeleteProcedureResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: "HTTP status code of the response."
+        headers:
+          type: object
+          description: "HTTP headers of the response."
+          additionalProperties:
+            type: string
+        body:
+          type: object
+          description: "Body of the response."
+          properties:
+            notFound:
+              type: boolean
+              description: "Indicates whether the procedure was not found."
+            deleteDryRunReport:
+              type: object
+              description: "Report detailing the affected statements in a dry run."
+              properties:
+                affectedStatements:
+                  type: object
+                  description: "Details of incoming and outgoing statements."
+                  properties:
+                    incoming:
+                      type: array
+                      description: "List of incoming statements referencing the procedure."
+                      items:
+                        type: object
+                        properties:
+                          subject:
+                            type: string
+                            description: "Subject of the statement."
+                          predicate:
+                            type: string
+                            description: "Predicate of the statement."
+                          ds:
+                            type: string
+                            description: "Data source related to the statement."
+                            format: uri
+                        required:
+                          - subject
+                          - predicate
+                          - ds
+                    outgoing:
+                      type: array
+                      description: "List of outgoing statements made by the procedure."
+                      items:
+                        type: object
+                        properties:
+                          subject:
+                            type: string
+                            description: "Subject of the statement."
+                          predicate:
+                            type: string
+                            description: "Predicate of the statement."
+                          ds:
+                            type: string
+                            description: "Data source related to the statement."
+                            format: uri
+                        required:
+                          - subject
+                          - predicate
+                          - ds
+                  required:
+                    - incoming
+                    - outgoing
+            success:
+              type: boolean
+              description: "Indicates whether the operation was successful."
+            executed:
+              type: boolean
+              description: "Indicates whether the deletion was executed."
+            "@id":
+              type: string
+              description: "ID of the procedure being referenced."
+              format: uri
+          required:
+            - notFound
+            - deleteDryRunReport
+            - success
+            - executed
+            - "@id"
+      required:
+        - statusCode
+        - headers
+        - body
+
+paths:
+  /863b8442-84d1-4a13-b0c9-3ca1f33de79e:
+    post:
+      summary: "Add/Update Procedure"
+      operationId: "addUpdateProcedure"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcedureData"
+      responses:
+        '200':
+          description: "Successful procedure add/update"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportProcess"
+
+  /5ec8d743-afbe-46fe-872a-c6862bc5b632:
+    post:
+      summary: "Delete Procedure"
+      operationId: "deleteProcedure"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteProcedureInput"
+      responses:
+        '204':
+          description: "Procedure deleted successfully (no content)"
+        '200':
+          description: "Delete operation result (dry run or successful)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteProcedureResponse"
+
+security:
+  - apiKey: []
+  - organizationId: []

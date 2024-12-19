@@ -1,0 +1,124 @@
+openapi: 3.0.1
+info:
+  title: HERO
+  version: "1.0.0"
+paths:
+  /upload/validation:
+    post:
+      summary: Endpoint to upload validation JSON on the platform.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadPayload'
+      responses:
+        '200':
+          description: The JSON was uploaded successfully.
+        '500':
+          description: A problem occurred while processing the JSON upload request.
+      tags:
+        - Upload
+
+  /upload/approval:
+    post:
+      summary: Endpoint to upload approval JSON on the platform.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadPayload'
+      responses:
+        '200':
+          description: The JSON was uploaded successfully.
+        '500':
+          description: A problem occurred while processing the JSON upload request.
+      tags:
+        - Upload
+
+components:
+  schemas:
+    UploadPayload:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        refersTo:
+          type: array
+          items:
+            $ref: '#/components/schemas/RefersTo'
+        isDefinedBy:
+          type: string
+        hasTarget:
+          $ref: '#/components/schemas/HasTarget'
+        lockoutPoints:
+          type: integer
+          example: 2
+        hasStep:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+        trace:
+          type: string
+
+    RefersTo:
+      type: object
+      properties:
+        identifier:
+          type: string
+        title:
+          type: string
+        format:
+          type: string
+        accessUrl:
+          type: string
+          format: uri
+
+    HasTarget:
+      type: object
+      properties:
+        machineType:
+          type: string
+        machineName:
+          type: string
+        location:
+          type: string
+
+    Step:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        hasStep:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+        energyPointType:
+          type: string
+        energyPointIdentifier:
+          type: string
+        refersTo:
+          type: array
+          items:
+            $ref: '#/components/schemas/RefersTo'
+        isOptional:
+          type: boolean
+        stepVerification:
+          $ref: '#/components/schemas/StepVerification'
+
+    StepVerification:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+
+tags:
+  - name: Upload
+    description: Endpoints for uploading JSON payloads.

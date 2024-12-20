@@ -1,0 +1,293 @@
+basePath: /api-git/perks-project/perks-api/
+definitions:
+  Message:
+    type: string
+info:
+  contact:
+    name: perks-project
+    url: https://github.com/perks-project
+  description: Procedural Knowledge Management System API
+  license:
+    name: License
+    url: https://raw.githubusercontent.com/perks-project/perks-api/main/LICENSE?token=ABLSAHE5TMYCQ2EZ2UJQEO3HMUQVI
+  title: perks-api
+  version: 31da352014d35ab2325347da2d1f4e8213335ada
+paths:
+  /next-step:
+    get:
+      description: |-
+        Which is the next step of a certain step?
+
+        ```
+        #+ summary: Returns the next step of a step.
+        #+ description: Which is the next step of a certain step?
+
+        PREFIX pko: <https://w3id.org/pko#> 
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX dct: <http://purl.org/dc/terms/> 
+        PREFIX pplan: <http://purl.org/net/p-plan#> 
+
+        SELECT ?step ?stepIdentifier ?stepTitle ?nextStep ?nextStepIdentifier ?nextStepTitle ?procedure
+        WHERE { 
+          ?step rdf:type ?stepType ;
+          dct:title ?stepTitle ; 
+          dct:identifier ?stepIdentifier ;
+          pko:nextStep ?nextStep .  
+          ?nextStep dct:title ?nextStepTitle ;
+          dct:identifier ?nextStepIdentifier . 
+          ?procedure pko:hasStep ?step .
+          FILTER ( ?stepType IN ( pplan:Step, pplan:MultiStep ) )
+        } LIMIT 100
+
+        ```
+      parameters:
+        - default: http://perks-virtuoso:8890/sparql
+          description: Alternative endpoint for SPARQL query
+          in: query
+          name: endpoint
+          type: string
+      produces:
+        - text/csv
+        - application/json
+        - text/html
+      responses:
+        '200':
+          description: Query response
+          schema:
+            items:
+              type: object
+            type: array
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Message'
+      summary: Returns the next step of a step.
+      tags: []
+  /procedure-created-modified:
+    get:
+      description: |-
+        When was a procedure created/modified?
+
+        ```
+        #+ summary: Returns the creation date of a procedure, and modification date(s), if any.
+        #+ description: When was a procedure created/modified?
+
+        PREFIX pko: <https://w3id.org/pko#> 
+        PREFIX dct: <http://purl.org/dc/terms/> 
+
+        SELECT ?procedure ?procedureTitle ?createdOn ?modifiedOn 
+        WHERE { 
+          ?procedure a pko:Procedure ;
+          dct:title ?procedureTitle ; 
+          dct:created ?createdOn . 
+          OPTIONAL { ?procedure dct:modified ?modifiedOn . }
+        } LIMIT 100
+
+        ```
+      parameters:
+        - default: http://perks-virtuoso:8890/sparql
+          description: Alternative endpoint for SPARQL query
+          in: query
+          name: endpoint
+          type: string
+      produces:
+        - text/csv
+        - application/json
+        - text/html
+      responses:
+        '200':
+          description: Query response
+          schema:
+            items:
+              type: object
+            type: array
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Message'
+      summary: Returns the creation date of a procedure, and modification date(s), if any.
+      tags: []
+  /procedure-references-resource:
+    get:
+      description: |-
+        Which are the media/documents related to a procedure?
+
+        ```
+        #+ summary: Returns the resources referenced by a procedure.
+        #+ description: Which are the media/documents related to a procedure?
+
+        PREFIX pko: <https://w3id.org/pko#> 
+        PREFIX dct: <http://purl.org/dc/terms/> 
+        PREFIX dcat: <http://www.w3.org/ns/dcat#> 
+
+        SELECT ?procedure ?procedureTitle ?resource ?resourceTitle ?resourceFormat
+        WHERE { 
+        ?procedure a pko:Procedure ; 
+        dct:title ?procedureTitle ; 
+        dct:references ?resource . 
+        ?resource dct:title ?resourceTitle ; 
+        dct:format ?resourceFormat .
+        } LIMIT 100
+
+        ```
+      parameters:
+        - default: http://perks-virtuoso:8890/sparql
+          description: Alternative endpoint for SPARQL query
+          in: query
+          name: endpoint
+          type: string
+      produces:
+        - text/csv
+        - application/json
+        - text/html
+      responses:
+        '200':
+          description: Query response
+          schema:
+            items:
+              type: object
+            type: array
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Message'
+      summary: Returns the resources referenced by a procedure.
+      tags: []
+  /procedure-target:
+    get:
+      description: |-
+        Which is the target of a procedure?
+
+        ```
+        #+ summary: Returns the target of a procedure, and the machine type and target location, if any.
+        #+ description: Which is the target of a procedure?
+
+        PREFIX pko: <https://w3id.org/pko#> 
+        PREFIX dct: <http://purl.org/dc/terms/> 
+        PREFIX prov: <http://www.w3.org/ns/prov#> 
+
+        SELECT ?procedure ?procedureTitle ?procedureTarget ?procedureTargetTitle ?machineType ?procedureTargetLocation
+        WHERE { 
+          ?procedure rdf:type pko:Procedure ; 
+          dct:title ?procedureTitle ; 
+          pko:hasProcedureTarget ?procedureTarget . 
+          ?procedureTarget dct:title ?procedureTargetTitle . 
+          OPTIONAL { 
+            ?procedureTarget pko:hasMachineType ?machineType ; 
+            prov:atLocation ?procedureTargetLocation .
+          } 
+        } LIMIT 100
+
+         
+
+        ```
+      parameters:
+        - default: http://perks-virtuoso:8890/sparql
+          description: Alternative endpoint for SPARQL query
+          in: query
+          name: endpoint
+          type: string
+      produces:
+        - text/csv
+        - application/json
+        - text/html
+      responses:
+        '200':
+          description: Query response
+          schema:
+            items:
+              type: object
+            type: array
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Message'
+      summary: Returns the target of a procedure, and the machine type and target location, if any.
+      tags: []
+  /procedures:
+    get:
+      description: |-
+
+
+        ```
+        #+ summary: Return the list of procedures defined.
+
+        PREFIX pko: <https://w3id.org/pko#>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+        SELECT ?procedure
+        WHERE {
+          ?procedure rdf:type pko:Procedure .
+        } LIMIT 100
+
+        ```
+      parameters:
+        - default: http://perks-virtuoso:8890/sparql
+          description: Alternative endpoint for SPARQL query
+          in: query
+          name: endpoint
+          type: string
+      produces:
+        - text/csv
+        - application/json
+        - text/html
+      responses:
+        '200':
+          description: Query response
+          schema:
+            items:
+              type: object
+            type: array
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Message'
+      summary: Return the list of procedures defined.
+      tags: []
+  /steps-of-procedure:
+    get:
+      description: |-
+        Which are the steps of a procedure?
+
+        ```
+        #+ summary: Returns the list of steps of a procedure.
+        #+ description: Which are the steps of a procedure?
+
+        PREFIX pko: <https://w3id.org/pko#>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX dct: <http://purl.org/dc/terms/>
+
+        SELECT ?procedure ?procedureTitle ?step ?stepTitle 
+        WHERE { 
+          ?procedure rdf:type pko:Procedure ; 
+          dct:title ?procedureTitle ; 
+          pko:hasStep ?step . 
+          ?step dct:title ?stepTitle .
+        } LIMIT 100
+
+        ```
+      parameters:
+        - default: http://perks-virtuoso:8890/sparql
+          description: Alternative endpoint for SPARQL query
+          in: query
+          name: endpoint
+          type: string
+      produces:
+        - text/csv
+        - application/json
+        - text/html
+      responses:
+        '200':
+          description: Query response
+          schema:
+            items:
+              type: object
+            type: array
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Message'
+      summary: Returns the list of steps of a procedure.
+      tags: []
+schemes: []
+swagger: '2.0'

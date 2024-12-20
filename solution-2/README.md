@@ -1,3 +1,5 @@
+# Solution 2 - API Docs
+
 The following APIs are exposed by S2: 
 - Acceptance of updates (JSON format) for draft procedures
   ```

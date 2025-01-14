@@ -42,3 +42,9 @@
 - **Description:** Retrieves the trace information for a given extraction process.
 - **Response:** JSON containing trace information.
 
+
+## Media download
+- **Endpoint:** `/api/download/imgs/<filename>`
+- **Method:** `GET`
+- **Description:** Download an image file from the server.
+- **Response:** Image file stream.

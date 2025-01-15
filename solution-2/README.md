@@ -10,4 +10,4 @@ The following APIs are exposed by S2:
   POST /api/procedure/<procedure-id>/update?field=status&value=STATUS_VALUE
   ```
 
-  Status Values accepted are: Draft, Validation, Approved
+  Status Values accepted are: Draft, Validation, Approval, Approved

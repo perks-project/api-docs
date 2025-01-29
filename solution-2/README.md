@@ -1,13 +1,14 @@
 # Solution 2 - API Docs
 
 The following APIs are exposed by S2: 
-- Acceptance of updates (JSON format) for draft procedures
+- Acceptance of updates (JSON format) for procedures
   ```
-  POST /api/procedure/<procedure-id>
+  POST /store/<asset-type>/<asset-id>
   ```
-- Acceptance of status updates for draft procedures
+- Acceptance of status updates for procedures
   ```
-  POST /api/procedure/<procedure-id>/update?field=status&value=STATUS_VALUE
+  POST /store/<asset-type>/<asset-id>/update?field=status&value=STATUS_VALUE
   ```
 
-  Status Values accepted are: Draft, Validation, Approval, Approved
+Asset Types accepted are: document, loto, commissioning-guide, commissioning-procedure, microgrid 
+Status Values accepted are: Draft, Validation, Approval, Approved

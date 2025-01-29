@@ -10,5 +10,6 @@ The following APIs are exposed by S2:
   POST /store/<asset-type>/<asset-id>/update?field=status&value=STATUS_VALUE
   ```
 
-Asset Types accepted are: document, loto, commissioning-guide, commissioning-procedure, microgrid 
-Status Values accepted are: Draft, Validation, Approval, Approved
+Asset Types accepted are: `document`, `loto`, `commissioning-guide`, `commissioning-procedure`, `microgrid`
+
+Status Values accepted are: `Draft`, `Validation`, `Approval`, `Approved`

@@ -5,7 +5,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: https://proxy.onlim.com/api/its/api/executioner/public/actions
+  - url: https://proxy.onlim.com/api/its/api/executioner/actions
 
 components:
   securitySchemes:

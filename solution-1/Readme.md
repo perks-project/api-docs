@@ -17,7 +17,7 @@
 - **Method:** `POST`
 - **Input Parameters:**
   - `useCase` (form data) ('Fagor','Beko')
-  - `template` (form data) ('Yate Factory','Commission')
+  - `template` (form data) ('Yate Factory' for Beko use case,'Commission' and 'Manuals' for Fagor use case)
   - `file` (file upload)
   - `document_id` (form data)
   - `documentType` (form data, optional) ('application/pdf','application/zip')
@@ -44,7 +44,7 @@
 
 
 ## Media download
-- **Endpoint:** `/api/download/imgs/<filename>`
+- **Endpoint:** `/api/download/media/<filename>`
 - **Method:** `GET`
 - **Description:** Download an image file from the server.
 - **Response:** Image file stream.

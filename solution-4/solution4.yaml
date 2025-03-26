@@ -3,404 +3,422 @@ info:
   title: Beko
   version: "1.0.0"
 paths:
-  /v1/authenticate:
+  /v1/Beko/PkmsService:
     post:
       tags:
-        - authentication
-      summary: Authenticate user and return a JWT token
+        - dynamic
+      summary: Pkms Service endpoint
       requestBody:
-        description: The username and password for authentication
+        description: Payload for PkmsService
         content:
           application/json:
             schema:
               type: object
               properties:
-                username:
+                uuid:
                   type: string
-                password:
+                trace_id:
                   type: string
+                procedure_id:
+                  type: string
+                  format: uri
+                action:
+                  type: string
+                timestamp:
+                  type: string
+                  format: date-time
       responses:
         "200":
-          description: Authentication successful
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "Your JWT token here"
+          description: Ok
   /v1/Beko/ProcedureExtractionService:
     post:
       tags:
         - dynamic
+      summary: Procedure Extraction Service endpoint
       requestBody:
-        description: The payload that the operation expects
+        description: Payload for ProcedureExtractionService
         content:
           application/json:
             schema:
               type: object
               properties:
-                procedure_extraction:
+                static:
                   type: object
                   properties:
-                    fine_tuned_lm:
-                      type: object
-                      properties:
-                        lm_uuid:
-                          type: string
-                    end_timestamp:
+                    ruleset_name:
                       type: string
-                      format: date-time
-                    procedure_document:
-                      type: object
-                      properties:
-                        document_id:
-                          type: string
-                        hash:
-                          type: string
+                    version:
+                      type: string
+                    description:
+                      type: string
+                    formalism:
+                      type: string
+                    scope:
+                      type: string
+                    input_conditions:
+                      type: string
+                    validation_metrics:
+                      type: string
+                    validation_results:
+                      type: string
+                    risks:
+                      type: string
+                    biases:
+                      type: string
+                    deployment_information:
+                      type: string
+                    license:
+                      type: string
+                    contact_information:
+                      type: string
+                    source_code:
+                      type: string
+                dynamic:
+                  type: object
+                  properties:
                     start_timestamp:
                       type: string
                       format: date-time
-                    output_id:
+                    end_timestamp:
                       type: string
-                    procedure_extraction_issue:
-                      type: object
-                      properties:
-                        error_id:
-                          type: array
-                          items:
-                            type: string
-                        label:
-                          type: string
-                        suggested_solution:
-                          type: string
-                    rules:
-                      type: object
-                      properties:
-                        formalism:
-                          type: string
-                        description:
-                          type: string
-                        contact_information:
-                          type: string
-                        input_conditions:
-                          type: string
-                        version:
-                          type: string
-                        license:
-                          type: string
-                        git_commit:
-                          type: string
-                        risks:
-                          type: string
-                        scope:
-                          type: string
-                        biases:
-                          type: string
-                        deployment_information:
-                          type: string
-                        ruleset_name:
-                          type: string
-                        validation_metrics:
-                          type: string
+                      format: date-time
+                    error_id:
+                      type: array
+                      items:
+                        type: string
+                    status:
+                      type: number
                     input_id:
                       type: string
-                    status:
-                      type: boolean
-                    extracted_procedure_results:
-                      type: object
-                      properties:
-                        hash:
-                          type: string
-                uuid:
-                  type: string
-      responses:
-        "201":
-          description: Created
-      security:
-        - JWTBearer: []
-  /v1/Beko/FineTuneLMService:
-    post:
-      tags:
-        - dynamic
-      requestBody:
-        description: The payload that the operation expects
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                fine_tune_lm:
-                  type: object
-                  properties:
-                    fine_tuned_lm:
-                      type: object
-                      properties:
-                        feature_information:
-                          type: string
-                        training_dataset_split:
-                          type: string
-                        evaluation_metrics:
-                          type: string
-                        model_type:
-                          type: string
-                        contact_information:
-                          type: string
-                        evaluation_results:
-                          type: string
-                        lm_uuid:
-                          type: string
-                        monitoring:
-                          type: string
-                        version:
-                          type: string
-                        training_dataset:
-                          type: string
-                        license:
-                          type: string
-                        intended_use:
-                          type: string
-                        risks:
-                          type: string
-                        model_name:
-                          type: string
-                        model_url:
-                          type: string
-                        biases:
-                          type: string
-                        deployment_information:
-                          type: string
-                        model_parameters:
-                          type: string
-                        training_information:
-                          type: string
+                    output_id:
+                      type: string
+                    hash:
+                      type: string
+                    document_id:
+                      type: string
                     model_version:
                       type: string
-                    lm:
-                      type: object
-                      properties:
-                        feature_information:
-                          type: string
-                        training_dataset_split:
-                          type: string
-                        evaluation_metrics:
-                          type: string
-                        model_type:
-                          type: string
-                        contact_information:
-                          type: string
-                        evaluation_results:
-                          type: string
-                        lm_uuid:
-                          type: string
-                        monitoring:
-                          type: string
-                        version:
-                          type: string
-                        training_dataset:
-                          type: string
-                        license:
-                          type: string
-                        intended_use:
-                          type: string
-                        risks:
-                          type: string
-                        model_name:
-                          type: string
-                        model_url:
-                          type: string
-                        biases:
-                          type: string
-                        deployment_information:
-                          type: string
-                        model_parameters:
-                          type: string
-                        training_information:
-                          type: string
-                    end_timestamp:
+                    output_hash:
                       type: string
-                      format: date-time
-                    start_timestamp:
-                      type: string
-                      format: date-time
-                    output_id:
-                      type: string
-                    input_id:
-                      type: string
-                    status:
-                      type: boolean
+                errors:
+                  type: array
+                  items:
+                    type: string
                 uuid:
                   type: string
       responses:
-        "201":
-          description: Created
-      security:
-        - JWTBearer: []
+        "200":
+          description: Ok
   /v1/Beko/ProcedureManualExtractionService:
     post:
       tags:
         - dynamic
+      summary: Procedure Manual Extraction Service endpoint
       requestBody:
-        description: The payload that the operation expects
+        description: Payload for ProcedureManualExtractionService
         content:
           application/json:
             schema:
               type: object
               properties:
-                procedure_manual_extraction:
+                intermediate_format:
                   type: object
                   properties:
-                    manual_procedure_results:
-                      type: object
-                      properties:
-                        hash:
-                          type: string
-                    end_timestamp:
+                    type:
+                      type: string
+                    created:
                       type: string
                       format: date-time
-                    start_timestamp:
+                    modified:
                       type: string
                       format: date-time
-                    output_id:
-                      type: string
-                    manual_extraction_issue:
-                      type: object
-                      properties:
-                        error_id:
-                          type: array
-                          items:
-                            type: string
-                        label:
-                          type: string
-                        suggested_solution:
-                          type: string
-                    input_id:
+                    title:
                       type: string
                     status:
-                      type: boolean
-                    extracted_procedure_results:
-                      type: object
-                      properties:
-                        hash:
-                          type: string
+                      type: string
+                    user:
+                      type: string
+                    machine_type:
+                      type: string
+                    machine_manufacturer:
+                      type: string
+                    machine_department:
+                      type: string
+                    machine_name:
+                      type: string
+                    machine_site:
+                      type: string
+                hash:
+                  type: string
+                diff:
+                  type: object
+                trace_id:
+                  type: string
+                action:
+                  type: string
+                timestamp:
+                  type: string
+                  format: date-time
                 uuid:
                   type: string
       responses:
-        "201":
-          description: Created
-      security:
-        - JWTBearer: []
+        "200":
+          description: Ok
   /v1/Beko/ProcedureApprovalService:
     post:
       tags:
         - dynamic
+      summary: Procedure Approval Service endpoint
       requestBody:
-        description: The payload that the operation expects
+        description: Payload for ProcedureApprovalService
         content:
           application/json:
             schema:
               type: object
               properties:
-                procedure_approval:
+                intermediate_format:
                   type: object
                   properties:
-                    validated_procedure_results:
-                      type: object
-                      properties:
-                        hash:
-                          type: string
+                    machine_type:
+                      type: string
+                    machine_manufacturer:
+                      type: string
+                    created:
+                      type: string
+                      format: date-time
+                    machine_department:
+                      type: string
+                    modified:
+                      type: string
+                      format: date-time
+                    machine_name:
+                      type: string
+                    title:
+                      type: string
+                    type:
+                      type: string
+                    hash:
+                      type: string
+                    machine_site:
+                      type: string
+                    status:
+                      type: string
+                    user:
+                      type: string
+                uuid:
+                  type: string
+                validation:
+                  type: object
+                  properties:
                     end_timestamp:
                       type: string
                       format: date-time
+                    validation_id:
+                      type: string
+                approval:
+                  type: object
+                  properties:
                     start_timestamp:
                       type: string
                       format: date-time
-                    output_id:
+                    approval_id:
                       type: string
-                    approved_procedure:
-                      type: object
-                      properties:
-                        hash:
-                          type: string
-                    procedure_approval_issue:
-                      type: object
-                      properties:
-                        error_id:
-                          type: array
-                          items:
-                            type: string
-                        label:
-                          type: string
-                        suggested_solution:
-                          type: string
-                    input_id:
+                confirmation:
+                  type: object
+                  properties:
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    confirmation_id:
                       type: string
                     status:
-                      type: boolean
+                      type: string
+                    comment:
+                      type: string
+      responses:
+        "200":
+          description: Ok
+  /v1/Beko/ProcedureConfirmationService:
+    post:
+      tags:
+        - dynamic
+      summary: Procedure Confirmation Service endpoint
+      requestBody:
+        description: Payload for ProcedureConfirmationService
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                intermediate_format:
+                  type: object
+                  properties:
+                    machine_type:
+                      type: string
+                    machine_manufacturer:
+                      type: string
+                    created:
+                      type: string
+                      format: date-time
+                    machine_department:
+                      type: string
+                    modified:
+                      type: string
+                      format: date-time
+                    machine_name:
+                      type: string
+                    title:
+                      type: string
+                    type:
+                      type: string
+                    hash:
+                      type: string
+                    machine_site:
+                      type: string
+                    status:
+                      type: string
+                    user:
+                      type: string
                 uuid:
                   type: string
+                approval:
+                  type: object
+                  properties:
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    approval_id:
+                      type: string
+                confirmation:
+                  type: object
+                  properties:
+                    start_timestamp:
+                      type: string
+                      format: date-time
+                    confirmation_id:
+                      type: string
       responses:
-        "201":
-          description: Created
-      security:
-        - JWTBearer: []
+        "200":
+          description: Ok
+  /v1/Beko/ProcedureConfirmedService:
+    post:
+      tags:
+        - dynamic
+      summary: Procedure Confirmed Service endpoint
+      requestBody:
+        description: Payload for ProcedureConfirmedService
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                intermediate_format:
+                  type: object
+                  properties:
+                    machine_type:
+                      type: string
+                    machine_manufacturer:
+                      type: string
+                    created:
+                      type: string
+                      format: date-time
+                    machine_department:
+                      type: string
+                    modified:
+                      type: string
+                      format: date-time
+                    machine_name:
+                      type: string
+                    title:
+                      type: string
+                    type:
+                      type: string
+                    hash:
+                      type: string
+                    machine_site:
+                      type: string
+                    status:
+                      type: string
+                    user:
+                      type: string
+                uuid:
+                  type: string
+                confirmation:
+                  type: object
+                  properties:
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    confirmation_id:
+                      type: string
+                    status:
+                      type: string
+      responses:
+        "200":
+          description: Ok
   /v1/Beko/ProcedureValidationService:
     post:
       tags:
         - dynamic
+      summary: Procedure Validation Service endpoint
       requestBody:
-        description: The payload that the operation expects
+        description: Payload for ProcedureValidationService
         content:
           application/json:
             schema:
               type: object
               properties:
-                procedure_validation:
+                intermediate_format:
                   type: object
                   properties:
-                    procedure_validation_issue:
-                      type: object
-                      properties:
-                        error_id:
-                          type: array
-                          items:
-                            type: string
-                        label:
-                          type: string
-                        suggested_solution:
-                          type: string
-                    validated_procedure_results:
-                      type: object
-                      properties:
-                        hash:
-                          type: string
-                    manual_procedure_results:
-                      type: object
-                      properties:
-                        hash:
-                          type: string
-                    end_timestamp:
+                    machine_type:
+                      type: string
+                    machine_manufacturer:
+                      type: string
+                    created:
                       type: string
                       format: date-time
+                    machine_department:
+                      type: string
+                    modified:
+                      type: string
+                      format: date-time
+                    machine_name:
+                      type: string
+                    title:
+                      type: string
+                    type:
+                      type: string
+                    hash:
+                      type: string
+                    machine_site:
+                      type: string
+                    status:
+                      type: string
+                    user:
+                      type: string
+                uuid:
+                  type: string
+                validation:
+                  type: object
+                  properties:
                     start_timestamp:
                       type: string
                       format: date-time
-                    output_id:
+                    validation_id:
                       type: string
-                    input_id:
+                confirmation:
+                  type: object
+                  properties:
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    confirmation_id:
                       type: string
                     status:
-                      type: boolean
-                uuid:
-                  type: string
+                      type: string
+                    comment:
+                      type: string
       responses:
-        "201":
-          description: Created
-      security:
-        - JWTBearer: []
-components:
-  securitySchemes:
-    JWTBearer:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-security:
-  - JWTBearer: []
+        "200":
+          description: Ok

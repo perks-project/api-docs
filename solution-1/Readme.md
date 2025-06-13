@@ -13,14 +13,18 @@
   ```
 
 ## Extract Procedure Intermediate Representation (IR) from a file
+
+The file can either by provided via upload or via the key under which it is stored in SeaweedFS.
 - **Endpoint:** `/api/procedure/extract`
 - **Method:** `POST`
 - **Input Parameters:**
   - `useCase` (form data) ('Fagor','Beko')
-  - `template` (form data) ('Yate Factory' for Beko use case,'Commission' and 'Manuals' for Fagor use case)
-  - `file` (file upload)
-  - `document_id` (form data)
-  - `documentType` (form data, optional) ('application/pdf','application/zip')
+  - `template` (form data) ('Yate Factory' for Beko use case, 'Commission' and 'Manuals' for Fagor use case)
+  - `documentType` (form data) ('application/pdf','application/zip')
+  - `file` (file upload, omit if swid is used)
+  - `swid` (SeaweedFS id, omit if file is used)
+  - `document_id` (form data, optional)
+
 - **Description:** Uploads a document for processing based on the specified use case and template.
 - **Response:** JSON containing procedure information and links for downloading extra files in addition to the same procedure using 'intermediate_download_url'.
   ```json

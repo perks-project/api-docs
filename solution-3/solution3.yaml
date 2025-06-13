@@ -3,9 +3,9 @@ info:
   title: HERO
   version: "1.0.0"
 paths:
-  /upload/validation:
+  /provider/upload/validation:
     post:
-      summary: Endpoint to upload validation JSON on the platform.
+      summary: Endpoint to upload validation JSON payloads.
       requestBody:
         required: true
         content:
@@ -16,13 +16,13 @@ paths:
         '200':
           description: The JSON was uploaded successfully.
         '500':
-          description: A problem occurred while processing the JSON upload request.
+          description: A problem when processing the json upload request occured.
       tags:
         - Upload
 
-  /upload/approval:
+  /provider/upload/approval:
     post:
-      summary: Endpoint to upload approval JSON on the platform.
+      summary: Endpoint to upload approval JSON payloads.
       requestBody:
         required: true
         content:
@@ -33,7 +33,7 @@ paths:
         '200':
           description: The JSON was uploaded successfully.
         '500':
-          description: A problem occurred while processing the JSON upload request.
+          description: A problem when processing the json upload request occured.
       tags:
         - Upload
 
@@ -42,50 +42,44 @@ components:
     UploadPayload:
       type: object
       properties:
+        created:
+          type: string
+          format: date-time
+        modified:
+          type: string
+          format: date-time
+        id:
+          type: string
         title:
           type: string
         description:
           type: string
-        refersTo:
-          type: array
-          items:
-            $ref: '#/components/schemas/RefersTo'
-        isDefinedBy:
+        isAdoptedBy:
           type: string
-        hasTarget:
-          $ref: '#/components/schemas/HasTarget'
-        lockoutPoints:
-          type: integer
-          example: 2
+        machineDepartment:
+          type: string
+        machineManufacturer:
+          type: string
+        machineName:
+          type: string
+        machineSite:
+          type: string
+        machineType:
+          type: string
+        status:
+          type: string
+        type:
+          type: string
+        user:
+          type: string
         hasStep:
           type: array
           items:
             $ref: '#/components/schemas/Step'
-        trace:
-          type: string
-
-    RefersTo:
-      type: object
-      properties:
-        identifier:
-          type: string
-        title:
-          type: string
-        format:
-          type: string
-        accessUrl:
-          type: string
-          format: uri
-
-    HasTarget:
-      type: object
-      properties:
-        machineType:
-          type: string
-        machineName:
-          type: string
-        location:
-          type: string
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reference'
 
     Step:
       type: object
@@ -94,22 +88,42 @@ components:
           type: string
         description:
           type: string
+        energyPoint:
+          $ref: '#/components/schemas/EnergyPoint'
         hasStep:
           type: array
           items:
             $ref: '#/components/schemas/Step'
-        energyPointType:
-          type: string
-        energyPointIdentifier:
-          type: string
-        refersTo:
+        hasStepVerification:
           type: array
           items:
-            $ref: '#/components/schemas/RefersTo'
+            $ref: '#/components/schemas/StepVerification'
         isOptional:
           type: boolean
-        stepVerification:
-          $ref: '#/components/schemas/StepVerification'
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reference'
+        substepsPolicy:
+          type: string
+
+    EnergyPoint:
+      type: object
+      properties:
+        energyPointIdentifier:
+          type: string
+        energySource:
+          type: string
+        isEnergyPoint:
+          type: boolean
+        ppe:
+          type: array
+          items:
+            type: string
+        typeOfLock:
+          type: array
+          items:
+            type: string
 
     StepVerification:
       type: object
@@ -119,6 +133,22 @@ components:
         description:
           type: string
 
+    Reference:
+      type: object
+      properties:
+        format:
+          type: string
+        resource:
+          type: object
+          properties:
+            key:
+              type: string
+            url:
+              type: string
+              format: uri
+        title:
+          type: string
+
 tags:
   - name: Upload
-    description: Endpoints for uploading JSON payloads.
+    description: Endpoints for uploading Validation and Approval JSON payloads.

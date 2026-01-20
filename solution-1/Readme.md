@@ -52,3 +52,17 @@ The file can either by provided via upload or via the key under which it is stor
 - **Method:** `GET`
 - **Description:** Download an image file from the server.
 - **Response:** Image file stream.
+
+
+## Validated Procedure Notification
+- **Endpoint:** `/api/procedure/validate`
+- **Method:** `POST`
+- **Payload:** JSON containing procedure id and type (e.g. loto), used to create SeaweedFS key `<type>/<id>`
+  ```json
+  {
+    "id": <id>,
+    "type": <type>
+  }
+  ```
+- **Description:** Notify S1 that a new validated procedure is available for download from SeaweedFS.
+- **Response:** JSON containing HTML response code, 200 for success, 400 for error

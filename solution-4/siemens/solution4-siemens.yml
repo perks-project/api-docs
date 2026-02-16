@@ -1,0 +1,28 @@
+openapi: 3.0.1
+info:
+  title: Siemens
+  version: "1.0.0"
+paths:
+  /v1/Siemens/SmartGrid:
+    post:
+      tags:
+        - provenance
+      summary: Upload provenance traces
+      description: Accepts a plain text JSON-LD or TTL payload.
+      requestBody:
+        description: Raw JSON-LD or TTL payload as plain text
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: '{"@context": "https://schema.org", "@type": "Event"}'
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Service not found for the given system and service name
+        "422":
+          description: Payload failed validation
+        "500":
+          description: Internal persistence error while saving the provenance trace

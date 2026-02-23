@@ -66,3 +66,19 @@ The file can either by provided via upload or via the key under which it is stor
   ```
 - **Description:** Notify S1 that a new validated procedure is available for download from SeaweedFS.
 - **Response:** JSON containing HTML response code, 200 for success, 400 for error
+
+
+## Generating Fagor Custom Procedure from General Procedure and Parameters
+
+The general procedure file and the parameter file can either by provided via upload or via the key under which it is stored in SeaweedFS.
+- **Endpoint:** `/api/procedure/instantiate`
+- **Method:** `POST`
+- **Input Parameters:**
+  - `useCase` (form data) (currently, only 'Fagor' is supported)
+  - `procedureFile` (file upload of general procedure, omit if procedureSwid is used)
+  - `procedureSwid ` (SeaweedFS id of the general procedure, omit if procedureFile is used)
+  - `file` (file upload of parameters, omit if swid is used)
+  - `swid` (SeaweedFS id of parameters, omit if file is used)
+
+- **Description:** Creates a custom procedure from general procedure and parameters.
+- **Response:** JSON containing custom procedure.

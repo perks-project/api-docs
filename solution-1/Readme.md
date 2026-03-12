@@ -68,7 +68,7 @@ The file can either by provided via upload or via the key under which it is stor
 - **Response:** JSON containing HTML response code, 200 for success, 400 for error
 
 
-## Generating Fagor Custom Procedure from General Procedure and Parameters
+## Generating Custom Procedure from General Procedure and Parameters
 
 The general procedure file and the parameter file can either by provided via upload or via the key under which it is stored in SeaweedFS.
 - **Endpoint:** `/api/procedure/instantiate`

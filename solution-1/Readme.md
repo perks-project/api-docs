@@ -19,8 +19,8 @@ The file can either by provided via upload or via the key under which it is stor
 - **Method:** `POST`
 - **Input Parameters:**
   - `useCase` (form data) ('Fagor','Beko')
-  - `template` (form data) ('Yate Factory' for Beko use case, 'Commission' and 'Manuals' for Fagor use case)
-  - `documentType` (form data) ('application/pdf','application/zip')
+  - `template` (form data) ('Yate Factory' or 'other' for Beko use case, 'Commission' and 'Manuals' for Fagor use case)
+  - `documentType` (form data) ('application/pdf', 'application/zip', 'application/xlsx')
   - `file` (file upload, omit if swid is used)
   - `swid` (SeaweedFS id, omit if file is used)
   - `document_id` (form data, optional)

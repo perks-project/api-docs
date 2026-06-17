@@ -49,7 +49,7 @@ The file can either be provided via upload or via the key under which it is stor
 Note that procedure extraction runs asynchronously. Use `job_status_url` to get the job's current
 status. Use `job_cancel_url` to cancel the job. When job status is `finished` use
 `intermediate_download_url` to retrieve procedure from S1. As an alternative, the procedure can also
-be retrieved from SeaweedFS using `loto/<extraction_id>/intermediate-json` as key.
+be retrieved from SeaweedFS using `s1/<extraction_id>/intermediate-json` as key.
 
 ## Get Job Status
 

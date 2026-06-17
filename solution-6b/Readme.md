@@ -19,7 +19,7 @@ The file can either be provided via upload or via the key under which it is stor
 - **Endpoint:** `/api/faq/generate`
 - **Method:** `POST`
 - **Input Parameters:**
-    - `useCase` (form data) ('Fagor', 'Siemens_EN', 'Siemens_DE')
+    - `useCase` (form data) ('Fagor_EN', 'Siemens_EN', 'Siemens_DE')
     - `documentType` (form data) ('application/pdf')
     - `file` (file upload, omit if swid is used)
     - `swid` (SeaweedFS id, omit if file is used)

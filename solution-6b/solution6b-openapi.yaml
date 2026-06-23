@@ -1,0 +1,206 @@
+openapi: 3.0.3
+info:
+  title: FAQ Generation API
+  version: 1.0.0
+  description: API for uploading documents or SeaweedFS files and generating FAQ datasets
+    asynchronously.
+servers:
+- url: /api
+paths:
+  /:
+    get:
+      summary: Health check
+      operationId: main
+      responses:
+        '200':
+          description: API status message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: API is working!
+  /faq/generate:
+    post:
+      summary: Start FAQ generation job
+      description: Uploads a document (file or SeaweedFS ID) and starts an asynchronous
+        FAQ generation process.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                documentType:
+                  type: string
+                  description: MIME type or file type (e.g., application/pdf)
+                useCase:
+                  type: string
+                  description: Use case for FAQ generation
+                document_id:
+                  type: string
+                  description: Optional document identifier
+                file:
+                  type: string
+                  format: binary
+                  description: Uploaded file (optional if swid is provided)
+                swid:
+                  type: string
+                  description: SeaweedFS file ID (optional if file is provided)
+              required:
+              - documentType
+              - useCase
+      responses:
+        '200':
+          description: Job started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  generation_id:
+                    type: string
+                  document_id:
+                    type: string
+                  original_document_download_url:
+                    type: string
+                  trace_download_url:
+                    type: string
+                  faq_download_url:
+                    type: string
+                  job_status_url:
+                    type: string
+                  job_cancel_url:
+                    type: string
+        '400':
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Server is busy processing another generation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /download/{filename}:
+    get:
+      summary: Download a previously uploaded file
+      operationId: downloadFile
+      parameters:
+      - name: filename
+        in: path
+        required: true
+        description: Name of the file stored in the upload directory.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: File downloaded successfully.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found.
+  /faq/{generation_id}/trace:
+    get:
+      summary: Retrieve generation trace
+      operationId: getTrace
+      parameters:
+      - name: generation_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Trace information is available.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          description: Trace not yet available.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - status
+                - message
+                properties:
+                  status:
+                    type: string
+                    example: processing
+                  message:
+                    type: string
+                    example: Trace not yet available
+  /faq/{generation_id}/status:
+    get:
+      summary: Get job status
+      parameters:
+      - name: generation_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                    - running
+                    - finished
+                    - canceled
+                    - unknown
+  /faq/{generation_id}/cancel:
+    get:
+      summary: Cancel job
+      parameters:
+      - name: generation_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Job cancellation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                    - canceled
+                    - unknown
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string

@@ -1,0 +1,329 @@
+openapi: 3.0.3
+info:
+  title: Procedure Extraction API
+  version: 1.0.0
+  description: API for procedure extraction, validation, guide instantiation, and
+    extraction job management.
+servers:
+- url: /api
+paths:
+  /:
+    get:
+      summary: Health check
+      operationId: main
+      responses:
+        '200':
+          description: API status message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: API is working!
+  /procedure/extract:
+    post:
+      summary: Submit a document for procedure extraction
+      operationId: extractProcedure
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - documentType
+              - useCase
+              properties:
+                documentType:
+                  type: string
+                  description: MIME type or document type of the uploaded document.
+                  example: application/pdf
+                useCase:
+                  type: string
+                  enum:
+                  - beko
+                  - fagor
+                mode:
+                  type: string
+                  description: Extraction mode.
+                  enum:
+                  - heuristic
+                  - llm
+                  default: heuristic
+                template:
+                  type: string
+                  description: Extraction template. Supported values depend on the
+                    selected use case.
+                  enum:
+                  - yate-1
+                  - yate-2
+                  - cassinetta
+                  - commission
+                  - manuals
+                  - other
+                document_id:
+                  type: string
+                  description: Optional external document identifier.
+                file:
+                  type: string
+                  format: binary
+                  description: Document file to upload.
+                swid:
+                  type: string
+                  description: SeaweedFS identifier of the document.
+      responses:
+        '200':
+          description: Extraction job successfully started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractionSubmissionResponse'
+        '400':
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Server is busy processing another extraction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /download/{filename}:
+    get:
+      summary: Download a previously uploaded file
+      operationId: downloadFile
+      parameters:
+      - name: filename
+        in: path
+        required: true
+        description: Name of the file stored in the upload directory.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: File downloaded successfully.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found.
+  /procedure/{extraction_id}/trace:
+    get:
+      summary: Retrieve extraction trace
+      operationId: getTrace
+      parameters:
+      - name: extraction_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Trace information is available.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          description: Trace not yet available.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - status
+                - message
+                properties:
+                  status:
+                    type: string
+                    example: processing
+                  message:
+                    type: string
+                    example: Trace not yet available
+  /procedure/validate:
+    post:
+      summary: Retrieve a validated procedure from SeaweedFS
+      operationId: submitValidatedProcedure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - id
+              - type
+              properties:
+                id:
+                  type: string
+                  description: Procedure identifier.
+                type:
+                  type: string
+                  description: Procedure type.
+                  enum:
+                  - beko
+                  - fagor
+      responses:
+        '200':
+          description: Validated procedure successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - message
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Retrieval failed or invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /procedure/instantiate:
+    post:
+      summary: Create a customized guide
+      operationId: createFagorCustomGuide
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                useCase:
+                  type: string
+                  enum:
+                  - fagor
+                  default: fagor
+                procedureFile:
+                  type: string
+                  format: binary
+                  description: Guide JSON file.
+                procedureSwid:
+                  type: string
+                  description: SeaweedFS identifier of the guide JSON.
+                file:
+                  type: string
+                  format: binary
+                  description: Parameters JSON file.
+                swid:
+                  type: string
+                  description: SeaweedFS identifier of the parameters JSON.
+      responses:
+        '200':
+          description: Customized guide generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid request or unsupported use case.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /procedure/{extraction_id}/status:
+    get:
+      summary: Get job status
+      parameters:
+      - name: extraction_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                    - running
+                    - finished
+                    - canceled
+                    - unknown
+  /procedure/{extraction_id}/cancel:
+    get:
+      summary: Cancel job
+      parameters:
+      - name: extraction_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Job cancellation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                    - canceled
+                    - unknown
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+    ExtractionSubmissionResponse:
+      type: object
+      required:
+      - message
+      - extraction_id
+      - document_id
+      - original_document_download_url
+      - trace_download_url
+      - intermediate_download_url
+      - job_status_url
+      - job_cancel_url
+      properties:
+        message:
+          type: string
+          example: File uploaded successfully!
+        extraction_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+        original_document_download_url:
+          type: string
+          format: uri-reference
+        trace_download_url:
+          type: string
+          format: uri-reference
+        intermediate_download_url:
+          type: string
+          format: uri-reference
+        job_status_url:
+          type: string
+          format: uri-reference
+        job_cancel_url:
+          type: string
+          format: uri-reference

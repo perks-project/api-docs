@@ -24,7 +24,7 @@ The file can either be provided via upload or via the key under which it is stor
       for Fagor use case)
     - `mode` (form data) (for 'Beko' use case only, 'heuristic' for heuristic pipeline, 'llm' for
       llm-based pipeline)
-    - `documentType` (form data) ('application/pdf', 'application/xlsx', 'application/zip')
+    - `documentType` (form data) ('application/pdf', 'application/xlsx', 'application/zip', 'text/plain', 'text/markdown')
     - `file` (file upload, omit if swid is used)
     - `swid` (SeaweedFS id, omit if file is used)
     - `document_id` (form data, optional)

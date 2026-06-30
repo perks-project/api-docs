@@ -1,0 +1,860 @@
+openapi: 3.0.3
+info:
+  title: PKMS Services API — PERKS Solution 5 (S5)
+  description: |
+    Backend API for the **Procedural Knowledge Management System
+    (PKMS)**, developed by [Cefriel](https://www.cefriel.com) as **Solution 5 (S5)** of
+    the [PERKS project](https://perks-project.eu/). It provides the
+    semantic storage, governance, lifecycle management, and publication layer for
+    procedural knowledge and related digital assets.
+
+    The solution is built on Semantic Web technologies and uses the
+    [Procedural Knowledge Ontology (PKO)](https://w3id.org/pko#) as the reference
+    model to represent procedures, metadata, reference data, access policies, and
+    lifecycle information in a consistent knowledge graph. S5 enables procedural
+    knowledge to be stored, linked, validated, searched, and exposed as a trusted
+    machine-readable format that can be reused by the other PERKS solutions.
+
+    S5 acts as the core PKMS backbone connecting authoring, extraction,
+    validation, approval, execution, and auditing workflows. It supports the
+    persistence of procedures authored or refined through S2, the storage and
+    publication of knowledge extracted by S1 and S3, the governance of assets
+    through metadata and access-control policies, and the exposure of approved
+    procedural knowledge to downstream services such as execution assistants and
+    chatbot-based interfaces.
+
+    Key capabilities include asset lifecycle management with versioning and
+    status-based workflows, a metadata catalogue for browsing and search,
+    ontology-aligned RDF storage, configurable lifting from structured inputs to
+    PKO-compliant RDF, publication of data-product APIs over the knowledge graph,
+    management of reference data and controlled vocabularies, integration with
+    external repositories through a data-fabric approach, and role-based access
+    control enforced through Keycloak and knowledge-graph policies.
+
+    By providing a governed and interoperable knowledge graph layer, S5 ensures
+    that procedural knowledge can be consistently managed across the PERKS
+    ecosystem and made available to both human-facing applications and AI-enabled
+    services.
+
+  version: 2.0.0
+  contact:
+    name: Cefriel
+    url: https://www.cefriel.com
+  license:
+    name: Proprietary
+  x-perks-solution: S5
+  x-ontology: https://w3id.org/pko#
+
+security:
+  - BearerAuth: []
+  - SignedURL: []
+
+tags:
+  - name: Health
+    description: Service health checks
+  - name: Assets
+    description: Asset CRUD operations (store, retrieve, update, delete)
+  - name: Asset Versions
+    description: Asset version management
+  - name: Attachments
+    description: Binary file attachments for assets
+  - name: Policies
+    description: Per-asset ODRL policy management
+  - name: Access Requests
+    description: Per-asset access request workflow
+  - name: RDF
+    description: SPARQL query access via the grlc API proxy
+  - name: Config
+    description: Runtime configuration
+
+# ─── Paths ───────────────────────────────────────────────────────────────
+
+paths:
+
+  # ── Health ─────────────────────────────────────────────────────────────
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Runtime health check
+      description: Returns the health status of the service and its dependencies.
+      tags: [Health]
+      security: []
+      responses:
+        "200":
+          description: Service is healthy or degraded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Service is unhealthy (critical dependency down)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── Assets ─────────────────────────────────────────────────────────────
+
+  /store/{asset_type}:
+    get:
+      operationId: getAssets
+      summary: List all current versions of assets
+      description: >
+        Returns the current versions of all assets of a given type.
+        Supports optional prefix and glob-pattern filtering.
+      tags: [Assets]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - name: prefix
+          in: query
+          schema:
+            type: string
+            default: ""
+          description: Filter assets whose ID starts with this prefix
+        - name: pattern
+          in: query
+          schema:
+            type: string
+            default: "*"
+          description: Glob pattern to match asset IDs
+      responses:
+        "200":
+          description: List of assets
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      type: object
+                  - $ref: "#/components/schemas/AssetListResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /store/{asset_type}/list:
+    get:
+      operationId: getAssetsList
+      summary: List assets with filtering
+      description: >
+        Returns a filtered list of assets of a given type. Supports prefix,
+        pattern, and field/value filtering.
+      tags: [Assets]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - name: prefix
+          in: query
+          schema:
+            type: string
+            default: ""
+        - name: pattern
+          in: query
+          schema:
+            type: string
+            default: "*"
+        - name: field
+          in: query
+          schema:
+            type: string
+          description: JSON field name to filter on
+        - name: value
+          in: query
+          schema:
+            type: string
+          description: Expected value for the field filter
+      responses:
+        "200":
+          description: Filtered asset list
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /store/{asset_type}/{asset_id}:
+    get:
+      operationId: getAsset
+      summary: Retrieve an asset
+      description: >
+        Returns the asset content as a file download, or a presigned/signed
+        URL pointing to the asset in object storage.
+      tags: [Assets]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - name: presigned_url
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Return an S3 presigned URL instead of the file content
+        - name: signed_url
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Return an HMAC-signed URL instead of the file content
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          description: Desired content type for the response
+      responses:
+        "200":
+          description: Asset content or URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlResponse"
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            "*/*":
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Mutually exclusive query params used together
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    post:
+      operationId: updateAsset
+      summary: Create or update an asset
+      description: >
+        Upload or update an asset. The body can be a multipart file upload,
+        raw binary data, or a JSON document.
+      tags: [Assets]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - name: x-solution-id
+          in: header
+          schema:
+            type: string
+          description: Solution ID for audit purposes
+        - name: x-parent-id
+          in: header
+          schema:
+            type: string
+          description: Parent asset ID (for versioned assets)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload
+          application/json:
+            schema:
+              type: object
+              description: JSON asset payload
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: Raw binary data
+      responses:
+        "200":
+          description: Asset updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "201":
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: No file or data provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    delete:
+      operationId: deleteAsset
+      summary: Delete an asset
+      tags: [Assets]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+      responses:
+        "200":
+          description: Asset deleted
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /store/{asset_type}/{asset_id}/update:
+    post:
+      operationId: updateAssetField
+      summary: Update a single field of an asset
+      description: >
+        Patch a single field/value pair on an existing asset. The authenticated
+        user (or `x-user-id` header for service-to-service calls) is recorded
+        for audit.
+      tags: [Assets]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - name: field
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Name of the field to update
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: string
+          description: New value for the field
+        - name: x-solution-id
+          in: header
+          schema:
+            type: string
+        - name: x-user-id
+          in: header
+          schema:
+            type: string
+          description: Fallback user ID (used only when no Keycloak token is present)
+      responses:
+        "200":
+          description: Field updated
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Versions ───────────────────────────────────────────────────────────
+
+  /store/versions/{asset_type}/{asset_id}:
+    get:
+      operationId: getAllVersions
+      summary: Get all versions of an asset
+      description: >
+        Returns metadata for every version of the specified asset.
+        The parent ID is resolved automatically.
+      tags: [Asset Versions]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+      responses:
+        "200":
+          description: Version list
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          description: Version service not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ── Attachments ────────────────────────────────────────────────────────
+
+  /attachment/{asset_type}/{asset_id}/{attachment_id}:
+    post:
+      operationId: uploadAttachment
+      summary: Upload a file attachment
+      description: >
+        Upload a binary file as an attachment to an asset. Optionally returns
+        a signed URL in the response.
+      tags: [Attachments]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - $ref: "#/components/parameters/AttachmentId"
+        - name: signed_url
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include an HMAC-signed URL in the response
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Attachment uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlResponse"
+        "400":
+          description: No file provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    get:
+      operationId: getAttachment
+      summary: Retrieve an attachment
+      description: >
+        Download an attachment or get a presigned/signed URL.
+      tags: [Attachments]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - $ref: "#/components/parameters/AttachmentId"
+        - name: presigned_url
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: signed_url
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: inline
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: If true, serve as inline content instead of attachment download
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Attachment content or URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlResponse"
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            "*/*":
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Mutually exclusive query params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: deleteAttachment
+      summary: Delete an attachment
+      tags: [Attachments]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - $ref: "#/components/parameters/AttachmentId"
+      responses:
+        "200":
+          description: Attachment deleted
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Policy management ─────────────────────────────────────────────────
+
+  /store/{asset_type}/{asset_id}/policy/permission/{username}:
+    delete:
+      operationId: revokeUserPermission
+      summary: Revoke a user's permission on an asset
+      description: >
+        Remove the ODRL permission for a specific user on a policy-restricted
+        asset.
+      tags: [Policies]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Username whose permission should be revoked
+      responses:
+        "200":
+          description: Permission revoked
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Asset type is not policy-restricted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ── Access Requests ────────────────────────────────────────────────────
+
+  /store/{asset_type}/{asset_id}/access-request:
+    post:
+      operationId: createAccessRequest
+      summary: Request access to a policy-restricted asset
+      tags: [Access Requests]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessRequestCreate"
+      responses:
+        "201":
+          description: Access request created
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Missing or invalid fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    get:
+      operationId: listAccessRequests
+      summary: List access requests for an asset
+      tags: [Access Requests]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, accepted, rejected]
+          description: Filter by request status
+      responses:
+        "200":
+          description: List of access requests
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Asset type is not policy-restricted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /store/{asset_type}/{asset_id}/access-request/{request_id}/review:
+    post:
+      operationId: reviewAccessRequest
+      summary: Accept or reject an access request
+      tags: [Access Requests]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the access request to review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessRequestReview"
+      responses:
+        "200":
+          description: Review recorded
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Missing or invalid decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ── RDF ────────────────────────────────────────────────────────────────
+
+  /pkms-api/{api_endpoint}:
+    get:
+      operationId: grlcQuery
+      summary: Execute a SPARQL query via grlc
+      description: >
+        Proxies the request to the configured grlc API. The `api_endpoint`
+        path is forwarded as-is. Query parameters are passed through to the
+        SPARQL endpoint. Checks on authentication and permissions are performed before forwarding the request.
+        Available endpoints are defined in the grlc API configuration [here](https://github.com/perks-project/perks-grlc/tree/main/docs).
+      tags: [RDF]
+      parameters:
+        - name: api_endpoint
+          in: path
+          required: true
+          schema:
+            type: string
+          description: >
+            grlc API endpoint path (e.g. `get-all-versions`,
+            `get-current-version`)
+      responses:
+        "200":
+          description: SPARQL query results
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          description: grlc API unavailable or query error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ── Config ─────────────────────────────────────────────────────────────
+
+  /api/config/permissions:
+    get:
+      operationId: getPermissionsConfig
+      summary: Get the current permissions configuration
+      description: Returns the full RBAC permissions configuration as JSON.
+      tags: [Config]
+      responses:
+        "200":
+          description: Permissions configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Raw permissions configuration object
+
+# ─── Components ──────────────────────────────────────────────────────────
+
+components:
+
+  # ── Security schemes ───────────────────────────────────────────────────
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Keycloak JWT access token
+    SignedURL:
+      type: apiKey
+      in: query
+      name: sig
+      description: HMAC-signed URL signature parameter
+
+  # ── Parameters ─────────────────────────────────────────────────────────
+
+  parameters:
+    AssetType:
+      name: asset_type
+      in: path
+      required: true
+      schema:
+        type: string
+      description: >
+        Asset type / category (e.g. `procedure`, `document`, `model`,
+        `loto`, `rbac`)
+    AssetId:
+      name: asset_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique identifier of the asset
+    AttachmentId:
+      name: attachment_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique identifier for the attachment
+
+  # ── Schemas ────────────────────────────────────────────────────────────
+
+  schemas:
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Error code or type
+        message:
+          type: string
+          description: Human-readable error description
+        status_code:
+          type: integer
+        requiredRoles:
+          type: array
+          items:
+            type: string
+          description: Roles that would grant access (present on 403 errors)
+        details:
+          type: object
+
+    HealthStatus:
+      type: object
+      required: [status, services]
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        services:
+          type: object
+          properties:
+            seaweedfs:
+              type: boolean
+            triplestore:
+              type: boolean
+            onlim:
+              type: boolean
+            extract:
+              type: boolean
+            hero:
+              type: boolean
+            audit:
+              type: boolean
+            migration:
+              type: boolean
+
+    UrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Relative or presigned URL to the resource
+        signed_url:
+          type: string
+          description: HMAC-signed absolute URL (only when `signed_url=true`)
+
+    AssetListResponse:
+      type: object
+      properties:
+        assets:
+          type: array
+          items:
+            type: object
+
+    AccessRequestCreate:
+      type: object
+      required: [action, motivation]
+      properties:
+        action:
+          type: string
+          enum: [read, modify, execute, manage]
+          description: Requested ODRL action
+        motivation:
+          type: string
+          description: Free-text justification for the access request
+
+    AccessRequestReview:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [accept, reject]
+          description: Review decision
+        motivation:
+          type: string
+          description: Optional justification for the decision
+
+  # ── Reusable responses ─────────────────────────────────────────────────
+
+  responses:
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: forbidden
+            message: Insufficient permissions to access procedure
+            requiredRoles: ["editor", "admin"]
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: NOT_FOUND
+            message: Resource not found
+            status_code: 404
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: unauthorized
+            message: Invalid or expired token

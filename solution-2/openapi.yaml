@@ -1,0 +1,722 @@
+openapi: 3.0.3
+info:
+  title: PKMS Services API — PERKS Solution 2 (S2)
+  description: |
+    Backend API for the **Tools for Manual and Semi-automatic Knowledge Collection**,
+    developed by [Cefriel](https://www.cefriel.com) as **Solution 2 (S2)** of
+    the [PERKS project](https://perks-project.eu/).
+
+    S2 is the PERKS solution for user-oriented authoring, editing, visualisation,
+    and refinement of procedural knowledge. It provides dynamic form-based
+    interfaces generated from JSON Schema definitions, allowing domain experts to
+    collect tacit or documented procedures without directly interacting with RDF
+    or ontology constructs.
+
+    The solution adopts a decoupled architecture in which procedural knowledge is
+    first represented through a structured JSON intermediate format and then
+    transformed into PKO-compliant RDF through controlled mapping rules and
+    templates. This enables manual procedure authoring, refinement of
+    AI-generated draft annotations from S1 and S3, and integration with the PKMS
+    knowledge graph managed by S5.
+
+    S2 also supports dynamic retrieval of reference data from the PKMS data
+    product, template-based generation of final procedures, visual inspection
+    before storage, and customisation of the interface according to use-case
+    terminology and requirements. In this way, S2 acts as the main
+    human-in-the-loop authoring layer connecting extraction, validation, semantic
+    storage, and procedure execution within the PERKS ecosystem.
+
+  version: 2.0.0
+  contact:
+    name: Cefriel
+    url: https://www.cefriel.com
+  license:
+    name: Proprietary
+  x-perks-solution: S2
+  x-ontology: https://w3id.org/pko#
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Assets
+    description: Retrieval of processed/enriched assets used by the S2 authoring workflow
+  - name: RDF
+    description: RDF lifting and validation of procedure representations
+  - name: Extraction
+    description: Asynchronous extraction, FAQ generation, and approval workflows
+
+# ─── Paths ───────────────────────────────────────────────────────────────
+
+paths:
+
+  # ── Assets ─────────────────────────────────────────────────────────────
+  /store/processed/{asset_type}/{asset_id}:
+    get:
+      operationId: getAssetProcessed
+      summary: Retrieve the processed version of an asset
+      description: >
+        Returns the processed/enriched variant of an asset, or a
+        presigned/signed URL pointing to it.
+      tags: [Assets]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - name: presigned_url
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: signed_url
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: Accept
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Processed asset content or URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlResponse"
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            "*/*":
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Mutually exclusive query params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── RDF ────────────────────────────────────────────────────────────────
+
+  /lifting/{asset_type}:
+    post:
+      operationId: liftingProcedure
+      summary: Perform RDF lifting on provided data
+      description: >
+        Validates and lifts the provided JSON data to RDF.
+        The `Accept` header controls the RDF serialisation format.
+      tags: [RDF]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - name: enrich
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Whether to enrich the RDF output with additional triples
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            example: text/turtle
+          description: Desired RDF serialisation (e.g. text/turtle, application/ld+json)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: JSON data to lift to RDF
+      responses:
+        "200":
+          description: RDF output
+          content:
+            text/turtle:
+              schema:
+                type: string
+            application/ld+json:
+              schema:
+                type: object
+            application/rdf+xml:
+              schema:
+                type: string
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Lifting error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /lifting/{asset_type}/{asset_id}:
+    get:
+      operationId: liftingAssetProcedure
+      summary: Perform RDF lifting on a stored asset
+      description: >
+        Retrieves the asset from storage and performs RDF lifting.
+      tags: [RDF]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+        - $ref: "#/components/parameters/AssetId"
+        - name: enrich
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            example: text/turtle
+      responses:
+        "200":
+          description: RDF output
+          content:
+            text/turtle:
+              schema:
+                type: string
+            application/ld+json:
+              schema:
+                type: object
+            application/rdf+xml:
+              schema:
+                type: string
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Lifting error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /validate/{asset_type}:
+    post:
+      operationId: validateProcedure
+      summary: Validate asset data against its schema
+      description: >
+        Validates the provided JSON data against the schema for the given
+        asset type. Requires edit-level permission.
+      tags: [RDF]
+      parameters:
+        - $ref: "#/components/parameters/AssetType"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: JSON data to validate
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Validation failed or schema not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ── Extraction ─────────────────────────────────────────────────────────
+
+  /extract:
+    post:
+      operationId: extractProcedure
+      summary: Submit an asset for asynchronous extraction
+      description: >
+        Triggers asynchronous extraction workflow and returns immediately with
+        a local PKMS job identifier and external S1 extraction identifier.
+      tags: [Extraction]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtractionRequest"
+      responses:
+        "202":
+          description: Extraction accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractionJobAccepted"
+        "400":
+          description: No JSON data received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /extract/{job_id}/status:
+    get:
+      operationId: getExtractionJobStatus
+      summary: Get extraction job status
+      tags: [Extraction]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractionJobStatus"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /extract/{job_id}/cancel:
+    post:
+      operationId: cancelExtractionJob
+      summary: Cancel extraction job
+      tags: [Extraction]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cancellation requested or already terminal
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /extract/{job_id}/trace:
+    get:
+      operationId: getExtractionJobTrace
+      summary: Get extraction job trace
+      tags: [Extraction]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job trace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractionJobTrace"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /faq/generate:
+    post:
+      operationId: generateFaq
+      summary: Submit asynchronous FAQ generation request
+      tags: [Extraction]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaqGenerateRequest"
+      responses:
+        "202":
+          description: FAQ generation accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FaqJobAccepted"
+        "400":
+          description: No JSON data received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /faq/{job_id}/status:
+    get:
+      operationId: getFaqJobStatus
+      summary: Get FAQ generation job status
+      tags: [Extraction]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: FAQ job status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FaqJobStatus"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /faq/{job_id}/cancel:
+    post:
+      operationId: cancelFaqJob
+      summary: Cancel FAQ generation job
+      tags: [Extraction]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cancellation requested or already terminal
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /faq/{job_id}/trace:
+    get:
+      operationId: getFaqJobTrace
+      summary: Get FAQ generation job trace
+      tags: [Extraction]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: FAQ job trace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FaqJobTrace"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /approve:
+    post:
+      operationId: approveProcedure
+      summary: Submit an existing procedure for validation and approval
+      description: >
+        Submits an asset for approval after extraction. Subject to ODRL policy
+        and submission-status eligibility checks.
+      tags: [Extraction]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtractionRequest"
+      responses:
+        "200":
+          description: Approval recorded
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: No JSON data received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+# ─── Components ──────────────────────────────────────────────────────────
+
+components:
+
+  # ── Security schemes ───────────────────────────────────────────────────
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Keycloak JWT access token
+
+  # ── Parameters ─────────────────────────────────────────────────────────
+
+  parameters:
+    AssetType:
+      name: asset_type
+      in: path
+      required: true
+      schema:
+        type: string
+      description: >
+        Asset type / category (e.g. `procedure`, `document`, `model`,
+        `loto`, `rbac`)
+    AssetId:
+      name: asset_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique identifier of the asset
+
+  # ── Schemas ────────────────────────────────────────────────────────────
+
+  schemas:
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Error code or type
+        message:
+          type: string
+          description: Human-readable error description
+        status_code:
+          type: integer
+        requiredRoles:
+          type: array
+          items:
+            type: string
+          description: Roles that would grant access (present on 403 errors)
+        details:
+          type: object
+
+    UrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Relative or presigned URL to the resource
+        signed_url:
+          type: string
+          description: HMAC-signed absolute URL (only when `signed_url=true`)
+
+    AssetListResponse:
+      type: object
+      properties:
+        assets:
+          type: array
+          items:
+            type: object
+
+    ExtractionRequest:
+      type: object
+      required: [type, id]
+      properties:
+        type:
+          type: string
+          description: Asset type
+        id:
+          type: string
+          description: Asset ID
+
+    FaqGenerateRequest:
+      type: object
+      required: [useCase]
+      properties:
+        useCase:
+          type: string
+          description: S6B use case identifier
+        documentType:
+          type: string
+          description: MIME type of source document
+        references:
+          type: object
+          description: Source document reference payload
+        resourceType:
+          type: string
+          description: local or remote
+
+    ExtractionJobAccepted:
+      type: object
+      properties:
+        message:
+          type: string
+        job_id:
+          type: string
+        asset_type:
+          type: string
+        extraction_id:
+          type: string
+        job_status_url:
+          type: string
+        job_cancel_url:
+          type: string
+        job_trace_url:
+          type: string
+        s1:
+          type: object
+
+    ExtractionJobStatus:
+      type: object
+      properties:
+        job_id:
+          type: string
+        asset_type:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, finished, failed, canceled, unknown]
+        created_at:
+          type: string
+        started_at:
+          type: string
+        finished_at:
+          type: string
+        cancel_requested:
+          type: boolean
+        s1:
+          type: object
+        result_asset:
+          type: object
+        last_error:
+          type: string
+
+    ExtractionJobTrace:
+      type: object
+      properties:
+        job_id:
+          type: string
+        asset_type:
+          type: string
+        status:
+          type: string
+        events:
+          type: array
+          items:
+            type: object
+        s1_trace:
+          type: object
+
+    FaqJobAccepted:
+      type: object
+      properties:
+        message:
+          type: string
+        job_id:
+          type: string
+        asset_type:
+          type: string
+        generation_id:
+          type: string
+        job_status_url:
+          type: string
+        job_cancel_url:
+          type: string
+        job_trace_url:
+          type: string
+        s6b:
+          type: object
+
+    FaqJobStatus:
+      type: object
+      properties:
+        job_id:
+          type: string
+        asset_type:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, finished, failed, canceled, unknown]
+        created_at:
+          type: string
+        started_at:
+          type: string
+        finished_at:
+          type: string
+        cancel_requested:
+          type: boolean
+        s6b:
+          type: object
+        faq_reference:
+          type: object
+        last_error:
+          type: string
+
+    FaqJobTrace:
+      type: object
+      properties:
+        job_id:
+          type: string
+        asset_type:
+          type: string
+        status:
+          type: string
+        events:
+          type: array
+          items:
+            type: object
+        s6b_trace:
+          type: object
+
+  # ── Reusable responses ─────────────────────────────────────────────────
+
+  responses:
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: forbidden
+            message: Insufficient permissions to access procedure
+            requiredRoles: ["editor", "admin"]
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: NOT_FOUND
+            message: Resource not found
+            status_code: 404
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: unauthorized
+            message: Invalid or expired token

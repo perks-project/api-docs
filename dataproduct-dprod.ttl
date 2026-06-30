@@ -1,0 +1,193 @@
+@prefix dprod:  <https://ekgf.github.io/dprod/> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix foaf:   <http://xmlns.com/foaf/0.1/> .
+@prefix pko:    <https://w3id.org/pko#> .
+@prefix perks:  <https://perks-project.eu/> .
+@prefix pkms:   <https://perks-project.eu/pkms/> .
+@prefix iana:   <https://www.iana.org/assignments/media-types/> .
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Data Product — PERKS Solution API Descriptor Catalogue
+# ═══════════════════════════════════════════════════════════════════════════
+
+perks:owner-consortium a prov:Agent , foaf:Organization ;
+    rdfs:label "PERKS Consortium" ;
+    foaf:homepage <https://perks-project.eu/> ;
+.
+
+perks:data-product a dprod:DataProduct ;
+    rdfs:label "PERKS Solution API Descriptor Catalogue" ;
+    dct:description """Catalogue data product for the PERKS ecosystem.  It provides a single
+DPROD entry point owned by the overall PERKS consortium and references the
+canonical API and data-product descriptors maintained by each solution, rather
+than redefining their datasets, ports, schemas, and endpoint details.""" ;
+    dprod:purpose """Make the public descriptors of the PERKS solutions discoverable as one
+federated data product, while keeping each solution responsible for its own
+OpenAPI or data-product specification.""" ;
+
+    dprod:dataProductOwner perks:owner-consortium ;
+    dprod:domain           perks:knowledge-management ;
+    dprod:lifecycleStatus  <https://ekgf.github.io/dprod/data/lifecycle-status/Consume> ;
+
+    dprod:outputDataset perks:dataset-solution-api-descriptors ;
+
+    dprod:outputPort perks:port-s1-procedure-extraction ;
+    dprod:outputPort perks:port-s2-knowledge-collection ;
+    dprod:outputPort perks:port-s3-validation-approval ;
+    dprod:outputPort perks:port-s4-beko-auditing ;
+    dprod:outputPort perks:port-s4-siemens-auditing ;
+    dprod:outputPort perks:port-s5-pkms ;
+    dprod:outputPort perks:port-s6a-procedure-execution ;
+    dprod:outputPort perks:port-s6b-faq-generation ;
+
+    dct:hasPart pkms:data-product ;
+.
+
+perks:dataset-solution-api-descriptors a dcat:Dataset ;
+    rdfs:label "PERKS Solution API Descriptors" ;
+    dct:description """Collection of the canonical OpenAPI and data-product descriptor files
+published in this repository for the PERKS solutions.""" ;
+    dcat:distribution perks:dist-s1-openapi ;
+    dcat:distribution perks:dist-s2-openapi ;
+    dcat:distribution perks:dist-s3-openapi ;
+    dcat:distribution perks:dist-s4-beko-openapi ;
+    dcat:distribution perks:dist-s4-siemens-openapi ;
+    dcat:distribution perks:dist-s5-openapi ;
+    dcat:distribution perks:dist-s5-dprod-yaml ;
+    dcat:distribution perks:dist-s6a-openapi ;
+    dcat:distribution perks:dist-s6b-openapi ;
+.
+
+perks:dist-s1-openapi a dcat:Distribution ;
+    rdfs:label "S1 Procedure Extraction OpenAPI descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <solution-1/solution1-openapi.yaml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:dist-s2-openapi a dcat:Distribution ;
+    rdfs:label "S2 Knowledge Collection OpenAPI descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <solution-2/openapi.yaml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:dist-s3-openapi a dcat:Distribution ;
+    rdfs:label "S3 Validation and Approval OpenAPI descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <solution-3/solution3.yaml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:dist-s4-beko-openapi a dcat:Distribution ;
+    rdfs:label "S4 Beko Auditing OpenAPI descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <solution-4/beko/solution4.yaml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:dist-s4-siemens-openapi a dcat:Distribution ;
+    rdfs:label "S4 Siemens Auditing OpenAPI descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <solution-4/siemens/solution4-siemens.yml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:dist-s5-openapi a dcat:Distribution ;
+    rdfs:label "S5 PKMS OpenAPI descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <solution-5/openapi.yaml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:dist-s5-dprod-yaml a dcat:Distribution ;
+    rdfs:label "S5 PKMS data-product descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <dataproduct-descriptor.yaml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:dist-s6a-openapi a dcat:Distribution ;
+    rdfs:label "S6A Procedure Execution OpenAPI descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <solution-6a/procedure-api.yaml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:dist-s6b-openapi a dcat:Distribution ;
+    rdfs:label "S6B FAQ Generation OpenAPI descriptor" ;
+    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
+    dcat:downloadURL <solution-6b/solution6b-openapi.yaml> ;
+    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
+.
+
+perks:port-s1-procedure-extraction a dcat:DataService ;
+    rdfs:label "S1 Procedure Extraction API" ;
+    dct:description "Procedure extraction, validation, guide instantiation, and extraction job management." ;
+    dcat:endpointDescription <solution-1/solution1-openapi.yaml> ;
+    dprod:protocol perks:protocol-rest-http ;
+    dprod:isAccessServiceOf perks:dist-s1-openapi ;
+.
+
+perks:port-s2-knowledge-collection a dcat:DataService ;
+    rdfs:label "S2 Knowledge Collection API" ;
+    dct:description "Manual and semi-automatic procedural knowledge authoring, refinement, RDF lifting, validation, and workflow integration." ;
+    dcat:endpointDescription <solution-2/openapi.yaml> ;
+    dprod:protocol perks:protocol-rest-http ;
+    dprod:securitySchemaType perks:security-bearer-jwt ;
+    dprod:isAccessServiceOf perks:dist-s2-openapi ;
+.
+
+perks:port-s3-validation-approval a dcat:DataService ;
+    rdfs:label "S3 Validation and Approval API" ;
+    dct:description "Validation and approval payload upload API for procedural knowledge workflows." ;
+    dcat:endpointDescription <solution-3/solution3.yaml> ;
+    dprod:protocol perks:protocol-rest-http ;
+    dprod:isAccessServiceOf perks:dist-s3-openapi ;
+.
+
+perks:port-s4-beko-auditing a dcat:DataService ;
+    rdfs:label "S4 Beko Auditing API" ;
+    dct:description "Beko-specific auditing and provenance API endpoints." ;
+    dcat:endpointDescription <solution-4/beko/solution4.yaml> ;
+    dprod:protocol perks:protocol-rest-http ;
+    dprod:isAccessServiceOf perks:dist-s4-beko-openapi ;
+.
+
+perks:port-s4-siemens-auditing a dcat:DataService ;
+    rdfs:label "S4 Siemens Auditing API" ;
+    dct:description "Siemens-specific auditing and provenance API endpoints." ;
+    dcat:endpointDescription <solution-4/siemens/solution4-siemens.yml> ;
+    dprod:protocol perks:protocol-rest-http ;
+    dprod:isAccessServiceOf perks:dist-s4-siemens-openapi ;
+.
+
+perks:port-s5-pkms a dcat:DataService ;
+    rdfs:label "S5 PKMS API" ;
+    dct:description "Procedural Knowledge Management System API for semantic storage, governance, lifecycle management, and publication." ;
+    dcat:endpointDescription <solution-5/openapi.yaml> ;
+    dprod:protocol perks:protocol-rest-http ;
+    dprod:securitySchemaType perks:security-bearer-jwt ;
+    dprod:isAccessServiceOf perks:dist-s5-openapi ;
+.
+
+perks:port-s6a-procedure-execution a dcat:DataService ;
+    rdfs:label "S6A Procedure Execution API" ;
+    dct:description "Procedure add, update, delete, and execution-support operations over JSON-LD procedure instances." ;
+    dcat:endpointDescription <solution-6a/procedure-api.yaml> ;
+    dprod:protocol perks:protocol-rest-http ;
+    dprod:isAccessServiceOf perks:dist-s6a-openapi ;
+.
+
+perks:port-s6b-faq-generation a dcat:DataService ;
+    rdfs:label "S6B FAQ Generation API" ;
+    dct:description "Asynchronous FAQ generation from uploaded documents or SeaweedFS files." ;
+    dcat:endpointDescription <solution-6b/solution6b-openapi.yaml> ;
+    dprod:protocol perks:protocol-rest-http ;
+    dprod:isAccessServiceOf perks:dist-s6b-openapi ;
+.

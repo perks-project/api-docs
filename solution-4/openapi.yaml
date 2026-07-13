@@ -215,6 +215,8 @@ paths:
                       format: date-time
                     validation_id:
                       type: string
+                    user:
+                      type: string  
                 approval:
                   type: object
                   properties:
@@ -235,6 +237,8 @@ paths:
                       type: string
                     comment:
                       type: string
+                    user:
+                      type: string  
       responses:
         "200":
           description: Ok
@@ -289,6 +293,8 @@ paths:
                       format: date-time
                     approval_id:
                       type: string
+                    user:
+                      type: string  
                 confirmation:
                   type: object
                   properties:
@@ -297,6 +303,7 @@ paths:
                       format: date-time
                     confirmation_id:
                       type: string
+                      
       responses:
         "200":
           description: Ok
@@ -353,6 +360,8 @@ paths:
                       type: string
                     status:
                       type: string
+                    user:
+                      type: string  
       responses:
         "200":
           description: Ok
@@ -419,6 +428,45 @@ paths:
                       type: string
                     comment:
                       type: string
+                    user:
+                      type: string
+                approval:
+                  type: object
+                  properties:
+                    end_timestamp:
+                      type: string
+                      format: date-time
+                    approval_id:
+                      type: string
+                    status:
+                      type: string
+                    comment:
+                      type: string
+                    user:
+                      type: string        
       responses:
         "200":
           description: Ok
+  /v1/Siemens/SmartGrid:
+    post:
+      tags:
+        - provenance
+      summary: Upload provenance traces
+      description: Accepts a plain text JSON-LD or TTL payload.
+      requestBody:
+        description: Raw JSON-LD or TTL payload as plain text
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: '{"@context": "https://schema.org", "@type": "Event"}'
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Service not found for the given system and service name
+        "422":
+          description: Payload failed validation
+        "500":
+          description: Internal persistence error while saving the provenance trace        

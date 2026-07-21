@@ -51,6 +51,45 @@ status. Use `job_cancel_url` to cancel the job. When job status is `finished` us
 `intermediate_download_url` to retrieve procedure from S1. As an alternative, the procedure can also
 be retrieved from SeaweedFS using `s1/<extraction_id>/intermediate-json` as key.
 
+## Generating Custom Procedure from Generic Procedure and Parameters
+
+The generic procedure file and the parameter file can either be provided via upload or via the key
+under which they are stored in SeaweedFS.
+
+- **Endpoint:** `/api/procedure/instantiate`
+- **Method:** `POST`
+- **Input Parameters:**
+    - `useCase` (form data) (currently, only 'Fagor' is supported)
+    - `mode` (form data) ('heuristic' for heuristic pipeline, 'llm' for llm-based pipeline)
+    - `procedureFile` (form data) (file upload of generic procedure, omit if procedureSwid is used)
+    - `procedureSwid` (form data) (SeaweedFS id of the generic procedure, omit if procedureFile is
+      used)
+    - `file` (form data) (file upload of parameters, omit if swid is used)
+    - `swid` (form data) (SeaweedFS id of parameters, omit if file is used)
+    - `document_id` (form data, optional)
+
+- **Description:** Uploads a generic procedure and parameters for custom procedure instantiation.
+- **Response:** JSON containing custom procedure.
+- **Response:** JSON containing instantiation_id and links for downloading related files as well as job
+  management URLs OR HTTP status 503 if a previous job is still running.
+  ```json
+  {
+    "message": "Files uploaded successfully!",
+    "instantiation_id": "UUID",
+    "document_id": "Document ID if provided",
+    "original_document_download_url": "URL to download the original document",
+    "trace_download_url": "URL to download the trace file when job is finished",
+    "intermediate_download_url": "URL to download intermediate processing file when job is finished",
+    "job_status_url": "URL to query job status",
+    "job_cancel_url": "URL to cancel job"
+  }
+  ```
+
+Note that custom procedure instantiation runs asynchronously. Use `job_status_url` to get the job's current
+status. Use `job_cancel_url` to cancel the job. When job status is `finished` use
+`intermediate_download_url` to retrieve procedure from S1. As an alternative, the procedure can also
+be retrieved from SeaweedFS using `s1/<instantiation_id>/intermediate-json` as key.
+
 ## Get Job Status
 
 - **Endpoint:** `/api/procedure/<extraction_id>/status`
@@ -106,21 +145,3 @@ be retrieved from SeaweedFS using `s1/<extraction_id>/intermediate-json` as key.
 - **Description:** Notify S1 that a new validated procedure is available for download from
   SeaweedFS.
 - **Response:** JSON containing HTML response code, 200 for success, 400 for error
-
-## Generating Custom Procedure from General Procedure and Parameters
-
-The general procedure file and the parameter file can either be provided via upload or via the key
-under which they are stored in SeaweedFS.
-
-- **Endpoint:** `/api/procedure/instantiate`
-- **Method:** `POST`
-- **Input Parameters:**
-    - `useCase` (form data) (currently, only 'Fagor' is supported)
-    - `procedureFile` (form data) (file upload of general procedure, omit if procedureSwid is used)
-    - `procedureSwid` (form data) (SeaweedFS id of the general procedure, omit if procedureFile is
-      used)
-    - `file` (form data) (file upload of parameters, omit if swid is used)
-    - `swid` (form data) (SeaweedFS id of parameters, omit if file is used)
-
-- **Description:** Creates a custom procedure from general procedure and parameters.
-- **Response:** JSON containing custom procedure.

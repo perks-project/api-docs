@@ -15,6 +15,24 @@
 #  Data Product — PERKS Solution API Descriptor Catalogue
 # ═══════════════════════════════════════════════════════════════════════════
 
+# ── Controlled vocabulary instances ────────────────────────────────────────
+
+perks:protocol-rest-http a dprod:Protocol ;
+    rdfs:label "REST/HTTP" ;
+.
+
+perks:security-bearer-jwt a dprod:SecuritySchemaType ;
+    rdfs:label "Bearer JWT" ;
+.
+
+perks:security-api-key a dprod:SecuritySchemaType ;
+    rdfs:label "API Key" ;
+.
+
+perks:protocol-mcp-streamable-http a dprod:Protocol ;
+    rdfs:label "MCP Streamable HTTP" ;
+.
+
 perks:owner-consortium a prov:Agent , foaf:Organization ;
     rdfs:label "PERKS Consortium" ;
     foaf:homepage <https://perks-project.eu/> ;
@@ -22,13 +40,9 @@ perks:owner-consortium a prov:Agent , foaf:Organization ;
 
 perks:data-product a dprod:DataProduct ;
     rdfs:label "PERKS Solution API Descriptor Catalogue" ;
-    dct:description """Catalogue data product for the PERKS ecosystem.  It provides a single
-DPROD entry point owned by the overall PERKS consortium and references the
-canonical API and data-product descriptors maintained by each solution, rather
-than redefining their datasets, ports, schemas, and endpoint details.""" ;
-    dprod:purpose """Make the public descriptors of the PERKS solutions discoverable as one
-federated data product, while keeping each solution responsible for its own
-OpenAPI or data-product specification.""" ;
+    dct:description """Catalogue data product for the PERKS platform. It exposes a single DPROD entry point for the overall platform and aggregates the structured descriptors of all PERKS solutions into one federated view.
+The platform covers the full procedural knowledge lifecycle: document-based extraction (S1), human-in-the-loop authoring and RDF lifting (S2), validation and approval workflows (S3), provenance and auditing (S4), semantic storage and governance via the PKMS knowledge graph (S5), runtime procedure execution (S6a), and FAQ generation from documents and procedures (S6b).""" ;
+    dprod:purpose """Make the public API descriptors of the PERKS solutions discoverable as one federated data product aligned with the DPROD ontology, while keeping each solution responsible for its own OpenAPI specification and endpoint details. Consumers can navigate from this entry point to the individual service descriptions, their distributions, and the PKO-aligned knowledge graph.""" ;
 
     dprod:dataProductOwner perks:owner-consortium ;
     dprod:domain           perks:knowledge-management ;
@@ -39,10 +53,10 @@ OpenAPI or data-product specification.""" ;
     dprod:outputPort perks:port-s1-procedure-extraction ;
     dprod:outputPort perks:port-s2-knowledge-collection ;
     dprod:outputPort perks:port-s3-validation-approval ;
-    dprod:outputPort perks:port-s4-beko-auditing ;
-    dprod:outputPort perks:port-s4-siemens-auditing ;
+    dprod:outputPort perks:port-s4-auditing ;
     dprod:outputPort perks:port-s5-pkms ;
     dprod:outputPort perks:port-s6a-procedure-execution ;
+    dprod:outputPort perks:port-s6a-mcp ;
     dprod:outputPort perks:port-s6b-faq-generation ;
 
     dct:hasPart pkms:data-product ;
@@ -55,10 +69,8 @@ published in this repository for the PERKS solutions.""" ;
     dcat:distribution perks:dist-s1-openapi ;
     dcat:distribution perks:dist-s2-openapi ;
     dcat:distribution perks:dist-s3-openapi ;
-    dcat:distribution perks:dist-s4-beko-openapi ;
-    dcat:distribution perks:dist-s4-siemens-openapi ;
+    dcat:distribution perks:dist-s4-openapi ;
     dcat:distribution perks:dist-s5-openapi ;
-    dcat:distribution perks:dist-s5-dprod-yaml ;
     dcat:distribution perks:dist-s6a-openapi ;
     dcat:distribution perks:dist-s6b-openapi ;
 .
@@ -84,17 +96,10 @@ perks:dist-s3-openapi a dcat:Distribution ;
     dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
 .
 
-perks:dist-s4-beko-openapi a dcat:Distribution ;
-    rdfs:label "S4 Beko Auditing OpenAPI descriptor" ;
+perks:dist-s4-openapi a dcat:Distribution ;
+    rdfs:label "S4 Auditing and Provenance OpenAPI descriptor" ;
     dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
-    dcat:downloadURL <solution-4/beko/solution4.yaml> ;
-    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
-.
-
-perks:dist-s4-siemens-openapi a dcat:Distribution ;
-    rdfs:label "S4 Siemens Auditing OpenAPI descriptor" ;
-    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
-    dcat:downloadURL <solution-4/siemens/solution4-siemens.yml> ;
+    dcat:downloadURL <solution-4/openapi.yaml> ;
     dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
 .
 
@@ -105,12 +110,6 @@ perks:dist-s5-openapi a dcat:Distribution ;
     dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
 .
 
-perks:dist-s5-dprod-yaml a dcat:Distribution ;
-    rdfs:label "S5 PKMS data-product descriptor" ;
-    dct:format <https://www.iana.org/assignments/media-types/application/yaml> ;
-    dcat:downloadURL <dataproduct-descriptor.yaml> ;
-    dprod:isDistributionOf perks:dataset-solution-api-descriptors ;
-.
 
 perks:dist-s6a-openapi a dcat:Distribution ;
     rdfs:label "S6A Procedure Execution OpenAPI descriptor" ;
@@ -128,7 +127,12 @@ perks:dist-s6b-openapi a dcat:Distribution ;
 
 perks:port-s1-procedure-extraction a dcat:DataService ;
     rdfs:label "S1 Procedure Extraction API" ;
-    dct:description "Procedure extraction, validation, guide instantiation, and extraction job management." ;
+    dct:description """Asynchronous pipeline for extracting structured procedural knowledge from
+documents. Supports heuristic and LLM-based extraction modes, multiple
+procedure templates, and guide instantiation for downstream customisation.
+Exposes job lifecycle management through status polling, processing-trace
+retrieval, and cancellation. Accepts document input via direct file upload or
+SeaweedFS object-store reference.""" ;
     dcat:endpointDescription <solution-1/solution1-openapi.yaml> ;
     dprod:protocol perks:protocol-rest-http ;
     dprod:isAccessServiceOf perks:dist-s1-openapi ;
@@ -136,7 +140,13 @@ perks:port-s1-procedure-extraction a dcat:DataService ;
 
 perks:port-s2-knowledge-collection a dcat:DataService ;
     rdfs:label "S2 Knowledge Collection API" ;
-    dct:description "Manual and semi-automatic procedural knowledge authoring, refinement, RDF lifting, validation, and workflow integration." ;
+    dct:description """Human-in-the-loop authoring backend for manual and semi-automatic
+procedural knowledge collection. Provides retrieval of processed assets,
+JSON-to-RDF lifting against the PKO ontology with optional triple enrichment
+and content-negotiated serialisation (Turtle, JSON-LD, RDF/XML),
+schema-based validation, and orchestration of asynchronous extraction and
+FAQ generation workflows in coordination with S1. Requires Bearer JWT
+authentication.""" ;
     dcat:endpointDescription <solution-2/openapi.yaml> ;
     dprod:protocol perks:protocol-rest-http ;
     dprod:securitySchemaType perks:security-bearer-jwt ;
@@ -145,31 +155,43 @@ perks:port-s2-knowledge-collection a dcat:DataService ;
 
 perks:port-s3-validation-approval a dcat:DataService ;
     rdfs:label "S3 Validation and Approval API" ;
-    dct:description "Validation and approval payload upload API for procedural knowledge workflows." ;
+    dct:description """Lightweight upload endpoint pair for pushing validation and approval
+decision payloads into the procedural knowledge review workflow. Payloads
+carry hierarchically structured procedure data including machine context,
+recursive step trees with energy-point and step-verification sub-objects,
+and workflow status metadata. Both endpoints share a symmetric request
+schema to keep the integration surface minimal and predictable.""" ;
     dcat:endpointDescription <solution-3/solution3.yaml> ;
     dprod:protocol perks:protocol-rest-http ;
     dprod:isAccessServiceOf perks:dist-s3-openapi ;
 .
 
-perks:port-s4-beko-auditing a dcat:DataService ;
-    rdfs:label "S4 Beko Auditing API" ;
-    dct:description "Beko-specific auditing and provenance API endpoints." ;
-    dcat:endpointDescription <solution-4/beko/solution4.yaml> ;
+perks:port-s4-auditing a dcat:DataService ;
+    rdfs:label "S4 Auditing and Provenance API" ;
+    dct:description """Auditing and provenance sink for the procedural knowledge lifecycle in
+the PERKS platform. Exposes two complementary integration patterns: a
+structured-event interface that records discrete workflow stage events
+(automated extraction, manual editing, validation, approval, and confirmation)
+as JSON payloads carrying a procedure snapshot with machine context,
+timestamps, and integrity hash; and an RDF-native interface that accepts raw
+JSON-LD or Turtle provenance traces as a plain-text body, enabling semantic
+interoperability with knowledge-graph-based monitoring infrastructure.""" ;
+    dcat:endpointDescription <solution-4/openapi.yaml> ;
     dprod:protocol perks:protocol-rest-http ;
-    dprod:isAccessServiceOf perks:dist-s4-beko-openapi ;
-.
-
-perks:port-s4-siemens-auditing a dcat:DataService ;
-    rdfs:label "S4 Siemens Auditing API" ;
-    dct:description "Siemens-specific auditing and provenance API endpoints." ;
-    dcat:endpointDescription <solution-4/siemens/solution4-siemens.yml> ;
-    dprod:protocol perks:protocol-rest-http ;
-    dprod:isAccessServiceOf perks:dist-s4-siemens-openapi ;
+    dprod:isAccessServiceOf perks:dist-s4-openapi ;
 .
 
 perks:port-s5-pkms a dcat:DataService ;
     rdfs:label "S5 PKMS API" ;
-    dct:description "Procedural Knowledge Management System API for semantic storage, governance, lifecycle management, and publication." ;
+    dct:description """Core semantic storage and governance backbone of the PERKS platform,
+aligned with the Procedural Knowledge Ontology (PKO). Provides full lifecycle
+management of typed knowledge assets, including versioning, ODRL-based
+per-asset access control policies, binary file attachments, and SPARQL query
+access via a governed grlc proxy over pre-defined named queries. Supports
+asset CRUD operations, single-field patching, access-request workflows with
+pending/accepted/rejected status, and runtime RBAC configuration enforced
+through Keycloak. Requires Bearer JWT authentication or HMAC-signed URLs for
+service-to-service access.""" ;
     dcat:endpointDescription <solution-5/openapi.yaml> ;
     dprod:protocol perks:protocol-rest-http ;
     dprod:securitySchemaType perks:security-bearer-jwt ;
@@ -178,15 +200,42 @@ perks:port-s5-pkms a dcat:DataService ;
 
 perks:port-s6a-procedure-execution a dcat:DataService ;
     rdfs:label "S6A Procedure Execution API" ;
-    dct:description "Procedure add, update, delete, and execution-support operations over JSON-LD procedure instances." ;
+    dct:description """REST interface for runtime procedure execution in the PERKS platform. Exposes knowledge-graph-backed actions
+for procedure discovery by keyword, hierarchical step-tree navigation, execution
+lifecycle management (start, step recording, pause, resume, finish or cancel),
+issue reporting on steps, and execution history search. Execution state is
+room-scoped to enable multi-user concurrent sessions; lifecycle transitions
+emit Kafka events for real-time downstream integration. Authenticated via
+organisation API key and organisation identifier headers.""" ;
     dcat:endpointDescription <solution-6a/procedure-api.yaml> ;
     dprod:protocol perks:protocol-rest-http ;
+    dprod:securitySchemaType perks:security-api-key ;
+    dprod:isAccessServiceOf perks:dist-s6a-openapi ;
+.
+
+perks:port-s6a-mcp a dcat:DataService ;
+    rdfs:label "S6A MCP Transport Endpoint" ;
+    dct:description """Model Context Protocol (MCP) endpoint of the S6A Procedure Execution
+service in the PERKS platform. Exposes a curated subset of the execution
+actions as MCP tools via Streamable HTTP transport (protocol version 2025-06-18),
+enabling AI agents and conversational interfaces to discover procedures,
+navigate step trees, manage the execution lifecycle, and report issues directly
+from an LLM-driven context. The available tool set is scoped per organisation.
+Authenticated via organisation API key and organisation identifier headers.""" ;
+    dcat:endpointDescription <solution-6a/procedure-api.yaml> ;
+    dprod:protocol perks:protocol-mcp-streamable-http ;
+    dprod:securitySchemaType perks:security-api-key ;
     dprod:isAccessServiceOf perks:dist-s6a-openapi ;
 .
 
 perks:port-s6b-faq-generation a dcat:DataService ;
     rdfs:label "S6B FAQ Generation API" ;
-    dct:description "Asynchronous FAQ generation from uploaded documents or SeaweedFS files." ;
+    dct:description """Asynchronous FAQ generation pipeline for procedure documents. Accepts
+document input via direct file upload or SeaweedFS object-store reference
+and returns a generation identifier alongside download URLs for the generated
+FAQ dataset, processing trace, and original document. Provides job lifecycle
+management through status polling, trace retrieval, and cancellation
+endpoints, following the same submit-and-poll pattern as S1.""" ;
     dcat:endpointDescription <solution-6b/solution6b-openapi.yaml> ;
     dprod:protocol perks:protocol-rest-http ;
     dprod:isAccessServiceOf perks:dist-s6b-openapi ;
